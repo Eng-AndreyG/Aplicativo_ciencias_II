@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Analítico - Ciencias de la Computación II</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Barra Lateral de Navegación -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Temas de Ciencias de la Computación II</h2>
+            </div>
+
+            <nav class="sidebar-nav">
+                <!-- Módulo 1 -->
+                <div class="nav-module">
+                    <button class="accordion">Módulo 1: Algoritmos de Búsqueda</button>
+                    <div class="panel">
+                        <div class="subgroup">
+                            <h4>Subgrupo A: Búsquedas internas y externas</h4>
+                            <ul>
+                                <li><a href="#" onclick="loadAlgorithm('secuencial')">Búsqueda Secuencial</a></li>
+                                <li><a href="#" onclick="loadAlgorithm('binaria')">Búsqueda Binaria</a></li>
+                                <li><a href="#" onclick="loadAlgorithm('transformacion')">Transformación de Claves</a></li>
+                            </ul>
+                        </div>
+                        <div class="subgroup">
+                            <h4>Subgrupo B: Funciones hash y colisiones</h4>
+                            <ul>
+                                <li><a href="#" onclick="loadAlgorithm('hash-modulo')">Función Hash: Módulo (Division)</a></li>
+                                <li><a href="#" onclick="loadAlgorithm('hash-cuadrado')">Función Hash: Cuadrado / Centro</a></li>
+                                <li><a href="#" onclick="loadAlgorithm('hash-reasignacion')">Colisiones: Reasignación</a></li>
+                                <li><a href="#" onclick="loadAlgorithm('hash-encadenamiento')">Colisiones: Encadenamiento</a></li>
+                            </ul>
+                        </div>
+                        <div class="subgroup">
+                            <h4>Subgrupo C: Otras búsquedas e Índices</h4>
+                            <ul>
+                                <li><a href="#" onclick="loadAlgorithm('arboles-2d')">Árboles 2D & Índices</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Módulo 2 -->
+                <div class="nav-module">
+                    <button class="accordion-static" title="Módulo en desarrollo">
+                        <span>Módulo 2: Grafos</span>
+                        <span class="badge-coming-soon">Próximamente</span>
+                    </button>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Contenido Principal -->
+        <main class="main-content">
+            <!-- Vista de Inicio (Activa por defecto) -->
+            <section id="welcome-view" class="view active">
+                <div class="welcome-card-large">
+                    <h1>Bienvenido al Entorno de Simulación</h1>
+                </div>
+            </section>
+
+            <!-- Vista de Algoritmo (Oculta por defecto, se activa al hacer clic en un enlace) -->
+            <section id="algorithm-view" class="view">
+                <header class="view-header">
+                    <button class="btn-back" onclick="showView('welcome-view')">
+                        <span class="btn-back-icon">&#8592;</span> Volver al Inicio
+                    </button>
+                    <h2 id="current-algorithm-title">Nombre del Algoritmo</h2>
+                </header>
+                
+                <div class="workspace">
+                    <!-- 1. Área Visual Principal -->
+                    <div class="simulation-area">
+                        <div class="simulation-header">
+                            <h3>Simulación y Entrada de Datos</h3>
+                            <span id="algo-badge" class="algo-badge">Búsqueda Binaria</span>
+                        </div>
+                        
+                        <!-- Controles de Simulación -->
+                        <div class="sim-controls">
+                            <div class="input-wrapper" id="hash-action-container" style="display: none;">
+                                <label for="hash-action" class="input-label">Operación:</label>
+                                <select id="hash-action" class="input-select">
+                                    <option value="insert">Insertar Clave</option>
+                                    <option value="search">Buscar Clave</option>
+                                    <option value="delete">Eliminar Clave</option>
+                                </select>
+                            </div>
+                            <div class="input-wrapper">
+                                <label for="target-value" id="input-data-label" class="input-label">Buscar valor:</label>
+                                <input type="number" id="target-value" class="input-data" placeholder="Ej: 16" min="0">
+                            </div>
+                            <button id="btn-step" class="btn-primary" onclick="stepSimulation()">
+                                <span class="btn-icon">&#9654;</span> <span id="btn-step-text">Siguiente Paso</span>
+                            </button>
+                            <button id="btn-auto" class="btn-secondary" onclick="toggleAutoSimulation()">
+                                <span id="auto-icon">&#9658;&#9658;</span> <span id="auto-text">Automático</span>
+                            </button>
+                            <button class="btn-secondary" onclick="resetSimulation()">
+                                <span class="btn-icon">&#8634;</span> Reiniciar
+                            </button>
+                            <button id="btn-random" class="btn-secondary btn-icon-only" onclick="generateRandomArray()" title="Generar nuevos valores aleatorios">
+                                <span>&#127922; Nuevo</span>
+                            </button>
+                        </div>
+
+                        <!-- Banner de Estado de la Simulación -->
+                        <div class="sim-status-banner" id="sim-status-banner">
+                            Ingrese un valor a buscar y presione <strong>Siguiente Paso</strong> o <strong>Automático</strong> para iniciar el rastreo.
+                        </div>
+
+                        <!-- Banner con la Fórmula Matemática Dinámica (para Hash Modulo y otros) -->
+                        <div id="formula-box" class="formula-box" style="display: none;">
+                            <span class="formula-title">Fórmula Hash:</span>
+                            <span id="formula-expression" class="formula-expression">h(k) = k mod N</span>
+                        </div>
+
+                        <!-- Visualizador del Arreglo con Punteros y Flecha Inferior -->
+                        <div class="array-visualizer-wrapper">
+                            <div class="array-container" id="array-visualizer">
+                                <!-- Generado dinámicamente desde app.js -->
+                            </div>
+                        </div>
+
+                        <!-- Panel de Logs / Registro de Ejecución -->
+                        <div class="log-panel">
+                            <div class="log-header">
+                                <h4>Registro de Ejecución</h4>
+                                <button class="btn-clear-logs" onclick="clearLogs()" title="Limpiar registro">Limpiar</button>
+                            </div>
+                            <ul id="execution-logs">
+                                <!-- Los mensajes del algoritmo aparecerán aquí dinámicamente -->
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- 2. Panel de Complejidad -->
+                    <aside class="complexity-panel">
+                        <h3>Análisis de Complejidad</h3>
+                        <div class="metrics">
+                            <div class="metric-card">
+                                <span>Tiempo (Peor Caso)</span>
+                                <strong id="time-complexity">O(n)</strong>
+                            </div>
+                            <div class="metric-card">
+                                <span>Espacio</span>
+                                <strong id="space-complexity">O(1)</strong>
+                            </div>
+                        </div>
+                        <div class="analysis-details">
+                            <p id="algorithm-description">Aquí se detallará el respectivo análisis de complejidad del algoritmo en ejecución.</p>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
