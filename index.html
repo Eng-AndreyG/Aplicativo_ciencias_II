@@ -30,10 +30,8 @@
                         <div class="subgroup">
                             <h4>Subgrupo B: Funciones hash y colisiones</h4>
                             <ul>
-                                <li><a href="#" onclick="loadAlgorithm('hash-modulo')">Función Hash: Módulo (Division)</a></li>
-                                <li><a href="#" onclick="loadAlgorithm('hash-cuadrado')">Función Hash: Cuadrado / Centro</a></li>
-                                <li><a href="#" onclick="loadAlgorithm('hash-reasignacion')">Colisiones: Reasignación</a></li>
-                                <li><a href="#" onclick="loadAlgorithm('hash-encadenamiento')">Colisiones: Encadenamiento</a></li>
+                                <li><a href="#" onclick="loadAlgorithm('hash-modulo')">Función Hash: Módulo y Colisiones</a></li>
+                                <li><a href="#" onclick="loadAlgorithm('hash-cuadrado')">Función Hash: Centro del Cuadrado</a></li>
                             </ul>
                         </div>
                         <div class="subgroup">
@@ -91,6 +89,16 @@
                                     <option value="delete">Eliminar Clave</option>
                                 </select>
                             </div>
+                            
+                            <div class="input-wrapper" id="collision-strategy-container" style="display: none;">
+                                <label for="collision-strategy" class="input-label">Colisión:</label>
+                                <select id="collision-strategy" class="input-select">
+                                    <option value="detener">Detener (Sin manejo)</option>
+                                    <option value="lineal">Sondeo Lineal</option>
+                                    <option value="encadenamiento">Encadenamiento</option>
+                                </select>
+                            </div>
+
                             <div class="input-wrapper">
                                 <label for="target-value" id="input-data-label" class="input-label">Buscar valor:</label>
                                 <input type="number" id="target-value" class="input-data" placeholder="Ej: 16" min="0">
@@ -160,6 +168,8 @@
             </section>
         </main>
     </div>
+    
+    <!-- Enlace al archivo de JavaScript donde residen las funciones (asegúrate de que app.js tenga las comas corregidas) -->
     <script src="app.js"></script>
 </body>
 </html>
