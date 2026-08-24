@@ -151,6 +151,12 @@ let simState = {
 // ==========================================
 // 5. Carga de Algoritmo en el Workspace
 // ==========================================
+// ==========================================
+// 5. Carga de Algoritmo en el Workspace
+// ==========================================
+// ==========================================
+// 5. Carga de Algoritmo en el Workspace
+// ==========================================
 function loadAlgorithm(algoId) {
     showView('algorithm-view');
 
@@ -188,10 +194,15 @@ function loadAlgorithm(algoId) {
         if (inputLabel) inputLabel.textContent = 'Clave (k):';
         if (btnStepText) btnStepText.textContent = 'Siguiente Paso';
         
-        const formulaExpr = document.getElementById('formula-expression');
-        if (formulaExpr) formulaExpr.textContent = `h(k) = k mod ${hashTableSize}`;
+        const exprElement = document.getElementById('formula-expression');
+        if (exprElement) {
+            if (algoId === 'hash-modulo') {
+                exprElement.innerHTML = `h(k) = k mod ${hashTableSize}`;
+            } else if (algoId === 'hash-cuadrado') {
+                exprElement.innerHTML = `h(k) = centro(k<sup>2</sup>)`;
+            }
+        }
         
-        // --- CAMBIO AQUÍ ---
         if (targetInput) targetInput.value = ''; 
     } else {
         if (hashActionContainer) hashActionContainer.style.display = 'none';
@@ -200,10 +211,18 @@ function loadAlgorithm(algoId) {
         if (inputLabel) inputLabel.textContent = 'Buscar valor:';
         if (btnStepText) btnStepText.textContent = 'Siguiente Paso';
         
-        // --- CAMBIO AQUÍ ---
         if (targetInput) targetInput.value = ''; 
     }
 
+    // --- NUEVO: Vaciamos las estructuras de datos completamente ---
+    arrayData = [];
+    hashTableData = new Array(hashTableSize).fill(null);
+
+    // Limpiamos la consola de registro de ejecución visualmente
+    const logContainer = document.getElementById('execution-logs');
+    if (logContainer) logContainer.innerHTML = '';
+
+    // Reiniciamos los punteros y repintamos
     resetSimulation();
     addLog(`Algoritmo cargado: <strong>${data.titulo}</strong>.`, 'info');
 }
@@ -217,7 +236,8 @@ function renderArrayVisualizer() {
 
     container.innerHTML = '';
 
-    if (currentAlgo === 'hash-modulo') {
+    // --- CAMBIO CLAVE AQUÍ: Permitir que cualquier Hash dibuje la tabla ---
+    if (currentAlgo.startsWith('hash')) {
         hashTableData.forEach((val, idx) => {
             const cell = document.createElement('div');
             cell.className = 'array-cell';
@@ -304,7 +324,6 @@ function renderArrayVisualizer() {
         cell.className = 'array-cell';
         cell.id = `cell-${idx}`;
 
-        // Determinar estados de la celda
         const isDiscarded = simState.discardedIndices.has(idx);
         const isInspecting = simState.inspectingIndex === idx;
         const isFound = simState.foundIndex === idx;
@@ -316,7 +335,6 @@ function renderArrayVisualizer() {
         if (isInspecting) cell.classList.add('cell-inspecting');
         if (isFound) cell.classList.add('cell-found');
 
-        // Punteros superiores (Izq, Med, Der) - Sencillos y limpios
         const badges = [];
         if (currentAlgo === 'binaria' && simState.started && !simState.finished) {
             if (simState.left === idx) badges.push({ type: 'left', label: `Izq (${idx})` });
@@ -344,19 +362,16 @@ function renderArrayVisualizer() {
             cell.appendChild(badgeGroup);
         }
 
-        // Índice superior de la celda
         const indexSpan = document.createElement('span');
         indexSpan.className = 'cell-index';
         indexSpan.textContent = `[${idx}]`;
         cell.appendChild(indexSpan);
 
-        // Valor dentro de la celda
         const valueSpan = document.createElement('span');
         valueSpan.className = 'cell-value';
         valueSpan.textContent = val;
         cell.appendChild(valueSpan);
 
-        // Flecha Inferior Dinámica: apunta a la celda observada en este momento
         if (isInspecting || isFound) {
             const bottomIndicator = document.createElement('div');
             bottomIndicator.className = 'cell-bottom-indicator';
@@ -364,7 +379,7 @@ function renderArrayVisualizer() {
 
             const arrowGlyph = document.createElement('span');
             arrowGlyph.className = 'indicator-arrow';
-            arrowGlyph.innerHTML = '&#9650;'; // Flecha hacia arriba
+            arrowGlyph.innerHTML = '&#9650;'; 
 
             const pill = document.createElement('span');
             pill.className = 'indicator-pill';
@@ -430,6 +445,7 @@ function stepSimulation() {
         return;
     }
 
+    // ... parte final de stepSimulation ...
     // Ejecutar un paso según el algoritmo actual
     if (currentAlgo === 'binaria') {
         stepBinarySearch();
@@ -439,6 +455,9 @@ function stepSimulation() {
         stepHashSearch();
     } else if (currentAlgo === 'hash-modulo') {
         stepHashModulo();
+    } else if (currentAlgo === 'hash-cuadrado') {
+        // NUEVA LÍNEA PARA CONECTAR EL BOTÓN
+        stepHashCuadrado();
     }
 
     renderArrayVisualizer();
@@ -471,14 +490,21 @@ function initSimulationState(targetVal) {
         simState.subPhase = 'calc_hash';
         setStatusBanner(`Iniciando Hashing para el valor <strong>${targetVal}</strong>. Aplicando función h(k) = k % ${arrayData.length}.`);
         addLog(`Función hash seleccionada: h(k) = k % ${arrayData.length}.`, 'step');
-    } else if (currentAlgo === 'hash-modulo') {
+        
+    // --- CAMBIO CLAVE AQUÍ ---
+    } else if (currentAlgo.startsWith('hash')) { 
         simState.hashIndex = null;
         simState.subPhase = 'calc_hash';
         const actionSelect = document.getElementById('hash-action');
         const action = actionSelect ? actionSelect.value : 'insert';
         const actionText = action === 'insert' ? 'Insertar' : (action === 'search' ? 'Buscar' : 'Eliminar');
-        setStatusBanner(`Iniciando operación Hash (<strong>${actionText}</strong>) para la clave <strong>${targetVal}</strong>. Aplicando h(${targetVal}) = ${targetVal} mod ${hashTableSize}.`);
-        addLog(`Operación Hash Módulo [<strong>${actionText}</strong>]: Clave k = ${targetVal}, N = ${hashTableSize}.`, 'step');
+        
+        const isModulo = currentAlgo === 'hash-modulo';
+        const algoName = isModulo ? 'Módulo' : 'Centro del Cuadrado';
+        const formulaText = isModulo ? `h(${targetVal}) = ${targetVal} mod ${hashTableSize}` : `h(${targetVal}) = centro(${targetVal}²)`;
+        
+        setStatusBanner(`Iniciando operación Hash (<strong>${actionText}</strong>) para la clave <strong>${targetVal}</strong>. Aplicando ${formulaText}.`);
+        addLog(`Operación Hash ${algoName} [<strong>${actionText}</strong>]: Clave k = ${targetVal}.`, 'step');
     }
 }
 
@@ -684,6 +710,107 @@ function stepHashModulo() {
         // Lógica de validación
         const isEmpty = currentVal === null;
         // Para encadenamiento, verificamos si la clave ya está en el string/array simulado
+        const isMatch = currentVal === k || (typeof currentVal === 'string' && currentVal.includes(k.toString()));
+
+        if (action === 'insert') {
+            if (isEmpty || isMatch) {
+                hashTableData[hIdx] = k;
+                simState.insertedIndex = hIdx;
+                simState.finished = true;
+                stopAutoSimulation();
+                setStatusBanner(`¡Éxito! Clave <strong>${k}</strong> insertada en <strong>[${hIdx}]</strong>.`, "found");
+                addLog(`Inserción exitosa en [${hIdx}].`, 'found');
+            } else {
+                handleCollision(hIdx, currentVal, strategy, k, action);
+            }
+        } else if (action === 'search') {
+            if (isMatch) {
+                simState.foundIndex = hIdx;
+                simState.finished = true;
+                stopAutoSimulation();
+                setStatusBanner(`¡Éxito! Clave <strong>${k}</strong> encontrada en <strong>[${hIdx}]</strong>.`, "found");
+                addLog(`Clave encontrada en [${hIdx}].`, 'found');
+            } else if (isEmpty && strategy !== 'encadenamiento') {
+                simState.finished = true;
+                stopAutoSimulation();
+                setStatusBanner(`Celda vacía. La clave <strong>${k}</strong> no existe en la tabla.`, "notfound");
+            } else {
+                handleCollision(hIdx, currentVal, strategy, k, action);
+            }
+        } else if (action === 'delete') {
+            if (isMatch) {
+                hashTableData[hIdx] = null;
+                simState.finished = true;
+                stopAutoSimulation();
+                setStatusBanner(`¡Éxito! Clave <strong>${k}</strong> eliminada.`, "found");
+                addLog(`Clave eliminada de [${hIdx}].`, 'found');
+            } else {
+                handleCollision(hIdx, currentVal, strategy, k, action);
+            }
+        }
+    }
+}
+
+
+// ------------------------------------------
+// Lógica de Función Hash: Centro del Cuadrado
+// ------------------------------------------
+function stepHashCuadrado() {
+    const actionSelect = document.getElementById('hash-action');
+    const strategySelect = document.getElementById('collision-strategy');
+    
+    const action = actionSelect ? actionSelect.value : 'insert';
+    const strategy = strategySelect ? strategySelect.value : 'detener';
+    const k = simState.target;
+    const n = hashTableSize;
+
+    if (simState.subPhase === 'calc_hash') {
+        simState.stepCount = 1;
+        
+        // 1. Elevar al cuadrado
+        const kSquared = k * k;
+        const sqStr = kSquared.toString();
+        
+        // 2. Extraer el dígito central
+        const midIdx = Math.floor(sqStr.length / 2);
+        const midChar = sqStr.charAt(midIdx); 
+        
+        // 3. Asegurar que caiga en el rango de la tabla
+        simState.originalHash = parseInt(midChar, 10) % n; 
+        simState.hashIndex = simState.originalHash;
+        simState.inspectingIndex = simState.hashIndex;
+        simState.probeCount = 0;
+
+        const exprElement = document.getElementById('formula-expression');
+        if (exprElement) {
+            exprElement.innerHTML = `h(${k}) &rarr; ${k}<sup>2</sup> = ${kSquared} &rarr; centro(${kSquared}) = <strong>${simState.hashIndex}</strong>`;
+        }
+
+        setStatusBanner(`Paso 1: h(<strong>${k}</strong>) = <strong>Cubeta [${simState.hashIndex}]</strong>.`);
+        addLog(`Paso 1: Cálculo Cuadrado -> ${k}^2 = ${kSquared}. Dígito central = ${simState.hashIndex}.`, 'step');
+        simState.subPhase = 'execute_action';
+
+    } else if (simState.subPhase === 'execute_action' || simState.subPhase === 'resolve_linear') {
+        
+        // Lógica de resolución de colisiones (Idéntica al hash módulo)
+        if (simState.subPhase === 'resolve_linear') {
+            simState.hashIndex = (simState.originalHash + simState.probeCount) % n;
+            simState.inspectingIndex = simState.hashIndex;
+            simState.collision = false; 
+        }
+
+        const hIdx = simState.hashIndex;
+        const currentVal = hashTableData[hIdx];
+
+        if (simState.probeCount >= n) {
+            simState.finished = true;
+            stopAutoSimulation();
+            setStatusBanner(`<strong>Tabla Llena:</strong> No hay espacios disponibles para la clave ${k}.`, "notfound");
+            addLog(`Error: Tabla hash llena tras ${simState.probeCount} intentos.`, 'notfound');
+            return;
+        }
+
+        const isEmpty = currentVal === null;
         const isMatch = currentVal === k || (typeof currentVal === 'string' && currentVal.includes(k.toString()));
 
         if (action === 'insert') {
