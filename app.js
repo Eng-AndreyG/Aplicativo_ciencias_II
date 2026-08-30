@@ -23,7 +23,6 @@ function showView(viewId) {
 const algorithmsData = {
     secuencial: { titulo: "Búsqueda Secuencial (Lineal)", badge: "Búsqueda Secuencial", tiempo: "O(n)", espacio: "O(1)", descripcion: "Examina secuencialmente cada elemento del arreglo." },
     binaria: { titulo: "Búsqueda Binaria", badge: "Búsqueda Binaria", tiempo: "O(log n)", espacio: "O(1)", descripcion: "Requiere que la colección esté previamente ordenada." },
-    transformacion: { titulo: "Búsqueda por Transformación (Hashing)", badge: "Hashing Directo", tiempo: "O(1) [Promedio] / O(n) [Peor]", espacio: "O(n)", descripcion: "Calcula directamente la dirección aplicando h(k) = k % N." },
     'hash-modulo': { titulo: "Función Hash por Módulo", badge: "Hash Módulo: h(k) = k mod N", tiempo: "O(1) [Promedio]", espacio: "O(N) Tabla Hash", descripcion: "Calcula el índice mediante la fórmula h(k) = k mod N." },
     'hash-cuadrado': { titulo: "Función Hash por Cuadrado (Centro)", badge: "Hash Cuadrado", tiempo: "O(1) [Promedio]", espacio: "O(N)", descripcion: "Eleva la clave al cuadrado k^2 y extrae los dígitos centrales." }
 };
@@ -68,12 +67,19 @@ function loadAlgorithm(algoId) {
     const inputLabel = document.getElementById('input-data-label');
     const btnStepText = document.getElementById('btn-step-text');
     const targetInput = document.getElementById('target-value');
+    const btnRandom = document.getElementById('btn-random');
+    const sizeLabel = document.getElementById('size-label');
 
     if (algoId.startsWith('hash')) {
+        // En Hash mostramos la operación y colisión, permitimos definir tamaño de tabla
         if (hashActionContainer) hashActionContainer.style.display = 'flex';
         if (colStrategyContainer) colStrategyContainer.style.display = 'flex'; 
-        if (arraySizeContainer) arraySizeContainer.style.display = 'none'; 
-        if (arrayInsertContainer) arrayInsertContainer.style.display = 'none'; 
+        if (arraySizeContainer) arraySizeContainer.style.display = 'flex'; 
+        if (sizeLabel) sizeLabel.textContent = 'Tamaño Tabla:';
+        
+        if (arrayInsertContainer) arrayInsertContainer.style.display = 'none'; // El insert se hace desde Operación
+        if (btnRandom) btnRandom.style.display = 'none'; // Desactivamos el Random para Hash
+        
         if (formulaBox) formulaBox.style.display = 'flex';
         if (inputLabel) inputLabel.textContent = 'Clave (k):';
         if (btnStepText) btnStepText.textContent = 'Siguiente Paso';
@@ -88,7 +94,10 @@ function loadAlgorithm(algoId) {
         if (hashActionContainer) hashActionContainer.style.display = 'none';
         if (colStrategyContainer) colStrategyContainer.style.display = 'none'; 
         if (arraySizeContainer) arraySizeContainer.style.display = 'flex'; 
+        if (sizeLabel) sizeLabel.textContent = 'Tamaño:';
         if (arrayInsertContainer) arrayInsertContainer.style.display = 'flex'; 
+        if (btnRandom) btnRandom.style.display = 'inline-flex';
+        
         if (formulaBox) formulaBox.style.display = 'none';
         if (inputLabel) inputLabel.textContent = 'Buscar valor:';
         if (btnStepText) btnStepText.textContent = 'Siguiente Paso';
@@ -105,83 +114,20 @@ function loadAlgorithm(algoId) {
 }
 
 // ==========================================
-// 5. Renderizado Visual
+// 5. Renderizado Visual Unificado
 // ==========================================
 function renderArrayVisualizer() {
     const container = document.getElementById('array-visualizer');
     if (!container) return;
     container.innerHTML = '';
 
-    if (currentAlgo.startsWith('hash')) {
-        hashTableData.forEach((val, idx) => {
-            const cell = document.createElement('div');
-            cell.className = 'array-cell';
-            cell.id = `cell-${idx}`;
+    const isHash = currentAlgo.startsWith('hash');
+    const dataArr = isHash ? hashTableData : arrayData;
+    const n = dataArr.length;
 
-            const isEmpty = val === null;
-            const isInspecting = simState.inspectingIndex === idx;
-            const isFound = simState.foundIndex === idx;
-            const isInserted = simState.insertedIndex === idx;
-            const isCollision = simState.collision && simState.inspectingIndex === idx;
-
-            if (isEmpty) cell.classList.add('cell-empty');
-            if (isInspecting && !isCollision) cell.classList.add('cell-inspecting');
-            if (isFound || isInserted) cell.classList.add('cell-found');
-            if (isCollision) cell.classList.add('cell-collision');
-
-            const badges = [];
-            if (isCollision) badges.push({ type: 'collision', label: `Colisión (${idx})` });
-            else if (isFound) badges.push({ type: 'mid', label: `Hallado (${idx})` });
-            else if (isInserted) badges.push({ type: 'mid', label: `Insertado (${idx})` });
-            else if (isInspecting) badges.push({ type: 'single', label: `Hash (${idx})` });
-
-            if (badges.length > 0) {
-                const badgeGroup = document.createElement('div');
-                badgeGroup.className = 'pointer-badge-group';
-                badges.forEach(b => {
-                    const badge = document.createElement('span');
-                    badge.className = `pointer-badge badge-${b.type}`;
-                    badge.textContent = b.label;
-                    badgeGroup.appendChild(badge);
-                });
-                cell.appendChild(badgeGroup);
-            }
-
-            const indexSpan = document.createElement('span');
-            indexSpan.className = 'cell-index';
-            indexSpan.textContent = `[${idx}]`;
-            cell.appendChild(indexSpan);
-
-            const valueSpan = document.createElement('span');
-            valueSpan.className = 'cell-value';
-            valueSpan.textContent = isEmpty ? '-' : val;
-            cell.appendChild(valueSpan);
-
-            if (isInspecting || isFound || isInserted || isCollision) {
-                const bottomIndicator = document.createElement('div');
-                bottomIndicator.className = 'cell-bottom-indicator';
-                if (isFound || isInserted) bottomIndicator.classList.add('indicator-found');
-                const arrowGlyph = document.createElement('span');
-                arrowGlyph.className = 'indicator-arrow';
-                arrowGlyph.innerHTML = '&#9650;';
-                const pill = document.createElement('span');
-                pill.className = 'indicator-pill';
-                if (isCollision) pill.innerHTML = `<strong>Colisión</strong> Cubeta [${idx}] = ${val}`;
-                else if (isFound) pill.innerHTML = `<strong>¡Encontrado!</strong> [${idx}] = ${val}`;
-                else if (isInserted) pill.innerHTML = `<strong>¡Insertado!</strong> h(k) -> [${idx}]`;
-                else pill.innerHTML = `Calculado: <strong>[${idx}]</strong>`;
-                bottomIndicator.appendChild(arrowGlyph);
-                bottomIndicator.appendChild(pill);
-                cell.appendChild(bottomIndicator);
-            }
-            container.appendChild(cell);
-        });
-        return;
-    }
-
-    const n = arrayData.length;
     let indicesToShow = new Set();
 
+    // Lógica para mostrar puntos suspensivos si es muy grande (> 12)
     if (n <= 12) {
         for (let i = 0; i < n; i++) indicesToShow.add(i);
     } else {
@@ -193,8 +139,8 @@ function renderArrayVisualizer() {
             activeIdxs.push(simState.left, simState.mid, simState.right);
         } else if (currentAlgo === 'secuencial' && simState.started) {
             activeIdxs.push(simState.currentIndex);
-        } else if (currentAlgo === 'transformacion' && simState.started) {
-            activeIdxs.push(simState.hashIndex);
+        } else if (isHash && simState.started) {
+            activeIdxs.push(simState.hashIndex, simState.insertedIndex, simState.foundIndex);
         }
         if (simState.inspectingIndex !== null) activeIdxs.push(simState.inspectingIndex);
 
@@ -220,35 +166,44 @@ function renderArrayVisualizer() {
         }
         lastIdx = idx;
 
-        const val = arrayData[idx];
+        const val = dataArr[idx];
         const cell = document.createElement('div');
         cell.className = 'array-cell';
         cell.id = `cell-${idx}`;
 
         const isEmpty = val === null;
-        const isDiscarded = simState.discardedIndices.has(idx);
         const isInspecting = simState.inspectingIndex === idx;
         const isFound = simState.foundIndex === idx;
+        const isInserted = simState.insertedIndex === idx;
+        const isCollision = isHash ? (simState.collision && simState.inspectingIndex === idx) : false;
+        const isDiscarded = !isHash && simState.discardedIndices.has(idx);
         const inActiveRange = currentAlgo === 'binaria' && simState.started && !simState.finished 
                               && idx >= simState.left && idx <= simState.right;
 
         if (isEmpty) cell.classList.add('cell-empty');
         if (isDiscarded) cell.classList.add('cell-discarded');
         if (inActiveRange && !isInspecting && !isFound && !isEmpty) cell.classList.add('cell-active');
-        if (isInspecting) cell.classList.add('cell-inspecting');
-        if (isFound) cell.classList.add('cell-found');
+        if (isInspecting && !isCollision) cell.classList.add('cell-inspecting');
+        if (isFound || (isHash && isInserted)) cell.classList.add('cell-found');
+        if (isCollision) cell.classList.add('cell-collision');
 
         const badges = [];
-        if (currentAlgo === 'binaria' && simState.started && !simState.finished) {
-            if (simState.left === idx) badges.push({ type: 'left', label: `Izq (${idx})` });
-            if (simState.mid === idx) badges.push({ type: 'mid', label: `Med (${idx})` });
-            if (simState.right === idx) badges.push({ type: 'right', label: `Der (${idx})` });
-        } else if (currentAlgo === 'secuencial' && simState.started && !simState.finished) {
-            if (simState.currentIndex === idx) badges.push({ type: 'single', label: `Pos (${idx})` });
-        }
-        
-        if (simState.isInserting && simState.inspectingIndex === idx) {
-            badges.push({ type: 'single', label: `Moviendo` });
+        if (isHash) {
+            if (isCollision) badges.push({ type: 'collision', label: `Colisión (${idx})` });
+            else if (isFound) badges.push({ type: 'mid', label: `Hallado (${idx})` });
+            else if (isInserted) badges.push({ type: 'mid', label: `Insertado (${idx})` });
+            else if (isInspecting) badges.push({ type: 'single', label: `Hash (${idx})` });
+        } else {
+            if (currentAlgo === 'binaria' && simState.started && !simState.finished) {
+                if (simState.left === idx) badges.push({ type: 'left', label: `Izq (${idx})` });
+                if (simState.mid === idx) badges.push({ type: 'mid', label: `Med (${idx})` });
+                if (simState.right === idx) badges.push({ type: 'right', label: `Der (${idx})` });
+            } else if (currentAlgo === 'secuencial' && simState.started && !simState.finished) {
+                if (simState.currentIndex === idx) badges.push({ type: 'single', label: `Pos (${idx})` });
+            }
+            if (simState.isInserting && simState.inspectingIndex === idx) {
+                badges.push({ type: 'single', label: `Moviendo` });
+            }
         }
 
         if (badges.length > 0) {
@@ -273,17 +228,28 @@ function renderArrayVisualizer() {
         valueSpan.textContent = isEmpty ? '-' : val;
         cell.appendChild(valueSpan);
 
-        if (isInspecting || isFound) {
+        if (isInspecting || isFound || (isHash && isInserted) || isCollision) {
             const bottomIndicator = document.createElement('div');
             bottomIndicator.className = 'cell-bottom-indicator';
-            if (isFound) bottomIndicator.classList.add('indicator-found');
+            if (isFound || (isHash && isInserted)) bottomIndicator.classList.add('indicator-found');
+            
             const arrowGlyph = document.createElement('span');
             arrowGlyph.className = 'indicator-arrow';
             arrowGlyph.innerHTML = '&#9650;'; 
+            
             const pill = document.createElement('span');
             pill.className = 'indicator-pill';
-            if (isFound) pill.innerHTML = `<strong>¡Encontrado!</strong> arr[${idx}] = ${val}`;
-            else pill.innerHTML = `Pos: <strong>${idx}</strong> | Val: <strong>${val}</strong>`;
+            
+            if (isHash) {
+                if (isCollision) pill.innerHTML = `<strong>Colisión</strong> Cubeta [${idx}] = ${val}`;
+                else if (isFound) pill.innerHTML = `<strong>¡Encontrado!</strong> [${idx}] = ${val}`;
+                else if (isInserted) pill.innerHTML = `<strong>¡Insertado!</strong> h(k) -> [${idx}]`;
+                else pill.innerHTML = `Calculado: <strong>[${idx}]</strong>`;
+            } else {
+                if (isFound) pill.innerHTML = `<strong>¡Encontrado!</strong> arr[${idx}] = ${val}`;
+                else pill.innerHTML = `Pos: <strong>${idx}</strong> | Val: <strong>${val === null ? '-' : val}</strong>`;
+            }
+            
             bottomIndicator.appendChild(arrowGlyph);
             bottomIndicator.appendChild(pill);
             cell.appendChild(bottomIndicator);
@@ -310,9 +276,16 @@ function createEmptyArray() {
         return;
     }
 
-    arrayData = new Array(size).fill(null);
-    resetSimulation();
-    addLog(`Se reservó en memoria una estructura de ${size} posiciones vacías.`, 'info');
+    if (currentAlgo.startsWith('hash')) {
+        hashTableSize = size;
+        hashTableData = new Array(hashTableSize).fill(null);
+        resetSimulation();
+        addLog(`Se creó una Tabla Hash con ${size} cubetas vacías.`, 'info');
+    } else {
+        arrayData = new Array(size).fill(null);
+        resetSimulation();
+        addLog(`Se reservó en memoria una estructura de ${size} posiciones vacías.`, 'info');
+    }
 }
 
 function insertSingleData() {
@@ -336,7 +309,6 @@ function insertSingleData() {
         return;
     }
 
-    // Colocamos el valor en el primer hueco disponible
     arrayData[firstEmptyIdx] = val;
     inputElement.value = '';
     
@@ -346,16 +318,13 @@ function insertSingleData() {
     simState.isInserting = true;
     setControlsDisabled(true);
 
-    // INICIO DE LA ANIMACIÓN PARA TODOS LOS ARREGLOS
     let currIdx = firstEmptyIdx;
     simState.inspectingIndex = currIdx;
     renderArrayVisualizer();
     setStatusBanner(`Insertando ${val}... Ordenando estructura paso a paso.`);
 
-    // Animación de burbujeo hacia atrás (Insertion Sort)
     const insertInterval = setInterval(() => {
         if (currIdx > 0 && arrayData[currIdx - 1] !== null && arrayData[currIdx] < arrayData[currIdx - 1]) {
-            // Intercambiar si el anterior es mayor
             const temp = arrayData[currIdx];
             arrayData[currIdx] = arrayData[currIdx - 1];
             arrayData[currIdx - 1] = temp;
@@ -363,7 +332,6 @@ function insertSingleData() {
             simState.inspectingIndex = currIdx;
             renderArrayVisualizer();
         } else {
-            // Llegó a su posición final
             clearInterval(insertInterval);
             finishInsertion(val, currIdx, "ordenado correctamente");
         }
@@ -447,7 +415,7 @@ function resetSimulation() {
             if (currentAlgo === 'hash-modulo') exprElement.innerHTML = `h(k) = k mod ${hashTableSize}`;
             else if (currentAlgo === 'hash-cuadrado') exprElement.innerHTML = `h(k) = centro(k<sup>2</sup>)`;
         }
-        setStatusBanner(`Ingrese una clave k y presione <strong>Siguiente Paso</strong> para iniciar.`);
+        setStatusBanner(`Seleccione la <strong>Operación</strong>, ingrese la clave y presione <strong>Siguiente Paso</strong>.`);
     } else {
         setStatusBanner(`Ingrese un valor a buscar y presione <strong>Siguiente Paso</strong> o <strong>Automático</strong>.`);
     }

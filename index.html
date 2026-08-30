@@ -21,7 +21,6 @@
                             <ul>
                                 <li><a href="#" onclick="loadAlgorithm('secuencial')">Búsqueda Secuencial</a></li>
                                 <li><a href="#" onclick="loadAlgorithm('binaria')">Búsqueda Binaria</a></li>
-                                <li><a href="#" onclick="loadAlgorithm('transformacion')">Transformación de Claves</a></li>
                             </ul>
                         </div>
                         <div class="subgroup">
@@ -71,15 +70,9 @@
                         </div>
                         
                         <div class="sim-controls">
-                            <!-- ZONA 1: CONFIGURACIÓN -->
-                            <div class="input-wrapper" id="hash-action-container" style="display: none;">
-                                <label for="hash-action" class="input-label">Operación:</label>
-                                <select id="hash-action" class="input-select">
-                                    <option value="insert">Insertar Clave</option>
-                                    <option value="search">Buscar Clave</option>
-                                    <option value="delete">Eliminar Clave</option>
-                                </select>
-                            </div>
+                            <!-- ========================================== -->
+                            <!-- ZONA 1: CONFIGURACIÓN DE LA ESTRUCTURA     -->
+                            <!-- ========================================== -->
                             
                             <div class="input-wrapper" id="collision-strategy-container" style="display: none;">
                                 <label for="collision-strategy" class="input-label">Colisión:</label>
@@ -91,9 +84,9 @@
                             </div>
 
                             <div class="input-wrapper" id="array-size-container">
-                                <label for="array-size-input" class="input-label">Tamaño:</label>
+                                <label for="array-size-input" id="size-label" class="input-label">Tamaño:</label>
                                 <input type="number" id="array-size-input" class="input-data" style="width: 80px;" placeholder="Ej: 5" min="1">
-                                <button class="btn-secondary" onclick="createEmptyArray()" title="Crear arreglo vacío">Crear</button>
+                                <button class="btn-secondary" onclick="createEmptyArray()" title="Crear estructura vacía">Crear</button>
                             </div>
 
                             <div class="input-wrapper" id="array-insert-container">
@@ -106,10 +99,24 @@
                                 <span>&#127922; Nuevo</span>
                             </button>
 
-                            <!-- SEPARADOR VISUAL HORIZONTAL -->
+                            <!-- ========================================== -->
+                            <!-- SEPARADOR VISUAL HORIZONTAL                -->
+                            <!-- ========================================== -->
                             <div style="width: 100%; height: 1.5px; background-color: var(--border-color); margin: 4px 0; border-radius: 2px;"></div>
 
-                            <!-- ZONA 2: EJECUCIÓN -->
+                            <!-- ========================================== -->
+                            <!-- ZONA 2: EJECUCIÓN Y USO DE LA ESTRUCTURA   -->
+                            <!-- ========================================== -->
+                            
+                            <div class="input-wrapper" id="hash-action-container" style="display: none;">
+                                <label for="hash-action" class="input-label">Operación:</label>
+                                <select id="hash-action" class="input-select">
+                                    <option value="insert">Insertar Clave</option>
+                                    <option value="search">Buscar Clave</option>
+                                    <option value="delete">Eliminar Clave</option>
+                                </select>
+                            </div>
+
                             <div class="input-wrapper">
                                 <label for="target-value" id="input-data-label" class="input-label">Buscar valor:</label>
                                 <input type="number" id="target-value" class="input-data" placeholder="Ej: 16" min="0">
@@ -170,8 +177,8 @@
         </main>
     </div>
     
-    <!-- Carga de los DOS scripts separados (Forzamos actualización con v=5) -->
-    <script src="app.js?v=5"></script>
-    <script src="simulador.js?v=5"></script>
+    <script src="app.js?v=9"></script>
+    <script src="busquedas.js?v=9"></script>
+    <script src="hash.js?v=9"></script>
 </body>
 </html>
