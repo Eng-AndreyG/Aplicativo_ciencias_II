@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Analítico - Ciencias de la Computación II</title>
+    <title>Plataforma de Simulación - Ciencias de la Computación II</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -11,16 +11,17 @@
         <!-- Barra Lateral de Navegación -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>Temas de Ciencias de la Computación II</h2>
+                <h2>Ciencias de la Computación II</h2>
+                <p class="sidebar-subtitle">Estructuras & Algoritmos</p>
             </div>
 
             <nav class="sidebar-nav">
                 <!-- Módulo 1 -->
                 <div class="nav-module">
-                    <button class="accordion">Módulo 1: Algoritmos de Búsqueda</button>
-                    <div class="panel">
+                    <button class="accordion active">Módulo 1: Búsquedas & Hashing</button>
+                    <div class="panel" style="display: block;">
                         <div class="subgroup">
-                            <h4>Subgrupo A: Búsquedas internas y externas</h4>
+                            <h4>Subgrupo A: Búsquedas Tradicionales</h4>
                             <ul>
                                 <li><a href="#" onclick="loadAlgorithm('secuencial')">Búsqueda Secuencial</a></li>
                                 <li><a href="#" onclick="loadAlgorithm('binaria')">Búsqueda Binaria</a></li>
@@ -28,18 +29,19 @@
                             </ul>
                         </div>
                         <div class="subgroup">
-                            <h4>Subgrupo B: Funciones hash y colisiones</h4>
+                            <h4>Subgrupo B: Hashing & Colisiones</h4>
                             <ul>
-                                <li><a href="#" onclick="loadAlgorithm('hash-modulo')">Función Hash: Módulo (Division)</a></li>
-                                <li><a href="#" onclick="loadAlgorithm('hash-cuadrado')">Función Hash: Cuadrado / Centro</a></li>
+                                <li><a href="#" onclick="loadAlgorithm('hash-modulo')">Hash: Módulo (División)</a></li>
+                                <li><a href="#" onclick="loadAlgorithm('hash-cuadrado')">Hash: Centro del Cuadrado</a></li>
                                 <li><a href="#" onclick="loadAlgorithm('hash-reasignacion')">Colisiones: Reasignación</a></li>
                                 <li><a href="#" onclick="loadAlgorithm('hash-encadenamiento')">Colisiones: Encadenamiento</a></li>
                             </ul>
                         </div>
                         <div class="subgroup">
-                            <h4>Subgrupo C: Otras búsquedas e Índices</h4>
+                            <h4>Subgrupo C: Búsqueda Digital & 2D</h4>
                             <ul>
-                                <li><a href="#" onclick="loadAlgorithm('arboles-2d')">Árboles 2D & Índices</a></li>
+                                <li><a href="#" onclick="loadAlgorithm('trie')">Árbol de Búsqueda Digital (Trie)</a></li>
+                                <li><a href="#" onclick="loadAlgorithm('arboles-2d')">Árboles 2D (k-d Tree)</a></li>
                             </ul>
                         </div>
                     </div>
@@ -47,10 +49,50 @@
 
                 <!-- Módulo 2 -->
                 <div class="nav-module">
-                    <button class="accordion-static" title="Módulo en desarrollo">
-                        <span>Módulo 2: Grafos</span>
-                        <span class="badge-coming-soon">Próximamente</span>
-                    </button>
+                    <button class="accordion">Módulo 2: Árboles & Grafos</button>
+                    <div class="panel">
+                        <div class="subgroup">
+                            <h4>Subgrupo A: Árboles de Búsqueda</h4>
+                            <ul>
+                                <li><a href="#" onclick="loadAlgorithm('bst')">Árbol Binario de Búsqueda (BST)</a></li>
+                                <li><a href="#" onclick="loadAlgorithm('arbol-avl')">Árbol AVL (Auto-balanceado)</a></li>
+                            </ul>
+                        </div>
+                        <div class="subgroup">
+                            <h4>Subgrupo B: Propiedades de Árboles</h4>
+                            <ul>
+                                <li><a href="#" onclick="loadAlgorithm('arbol-centro')">Centro y Excentricidad</a></li>
+                            </ul>
+                        </div>
+                        <div class="subgroup">
+                            <h4>Subgrupo C: Árboles de Expansión Mínima</h4>
+                            <ul>
+                                <li><a href="#" onclick="loadAlgorithm('mst-prim')">MST - Algoritmo de Prim</a></li>
+                                <li><a href="#" onclick="loadAlgorithm('mst-kruskal')">MST - Algoritmo de Kruskal</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Módulo 3 -->
+                <div class="nav-module">
+                    <button class="accordion">Módulo 3: Índices & Disco</button>
+                    <div class="panel">
+                        <div class="subgroup">
+                            <h4>Subgrupo A: Índices para Archivos</h4>
+                            <ul>
+                                <li><a href="#" onclick="loadAlgorithm('indice-primario')">Índice Primario (Disperso / Denso)</a></li>
+                                <li><a href="#" onclick="loadAlgorithm('indice-secundario')">Índice Secundario</a></li>
+                                <li><a href="#" onclick="loadAlgorithm('indice-multinivel')">Índice Multinivel (Árbol B/B+)</a></li>
+                            </ul>
+                        </div>
+                        <div class="subgroup">
+                            <h4>Subgrupo B: Accesos a Disco</h4>
+                            <ul>
+                                <li><a href="#" onclick="loadAlgorithm('calculadora-disco')">Calculadora de Accesos a Disco (I/O)</a></li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </nav>
         </aside>
@@ -59,12 +101,38 @@
         <main class="main-content">
             <!-- Vista de Inicio (Activa por defecto) -->
             <section id="welcome-view" class="view active">
-                <div class="welcome-card-large">
-                    <h1>Bienvenido al Entorno de Simulación</h1>
+                <div class="welcome-container">
+                    <div class="welcome-card-large">
+                        <h1>Entorno Interactivo de Simulación</h1>
+                        <p class="welcome-subtitle">Ciencias de la Computación II &mdash; Universidad Distrital</p>
+                    </div>
+
+                    <div class="module-cards-grid">
+                        <div class="module-card" onclick="openModuleAccordion(0); loadAlgorithm('binaria');">
+                            <div class="card-icon">🔍</div>
+                            <h3>Módulo 1: Búsquedas & Hashing</h3>
+                            <p>Algoritmos secuenciales, binarios, funciones hash, resolución de colisiones y búsqueda digital.</p>
+                            <span class="card-link">Explorar Módulo &rarr;</span>
+                        </div>
+
+                        <div class="module-card" onclick="openModuleAccordion(1); loadAlgorithm('bst');">
+                            <div class="card-icon">🌳</div>
+                            <h3>Módulo 2: Árboles & Grafos</h3>
+                            <p>Estructuras jerárquicas, Árboles BST, AVL, 2D, Trie, Centro de Árboles y MST (Prim & Kruskal).</p>
+                            <span class="card-link">Explorar Módulo &rarr;</span>
+                        </div>
+
+                        <div class="module-card" onclick="openModuleAccordion(2); loadAlgorithm('indice-primario');">
+                            <div class="card-icon">🗂️</div>
+                            <h3>Módulo 3: Índices & Disco</h3>
+                            <p>Organización de archivos, índices primarios, secundarios, multinivel y cálculo de accesos a disco.</p>
+                            <span class="card-link">Explorar Módulo &rarr;</span>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            <!-- Vista de Algoritmo (Oculta por defecto, se activa al hacer clic en un enlace) -->
+            <!-- Vista de Algoritmo -->
             <section id="algorithm-view" class="view">
                 <header class="view-header">
                     <button class="btn-back" onclick="showView('welcome-view')">
@@ -81,8 +149,9 @@
                             <span id="algo-badge" class="algo-badge">Búsqueda Binaria</span>
                         </div>
                         
-                        <!-- Controles de Simulación -->
+                        <!-- Controles de Simulación Dinámicos -->
                         <div class="sim-controls">
+                            <!-- Operación Hash -->
                             <div class="input-wrapper" id="hash-action-container" style="display: none;">
                                 <label for="hash-action" class="input-label">Operación:</label>
                                 <select id="hash-action" class="input-select">
@@ -91,10 +160,33 @@
                                     <option value="delete">Eliminar Clave</option>
                                 </select>
                             </div>
-                            <div class="input-wrapper">
+
+                            <!-- Selector de Recorridos para Árboles -->
+                            <div class="input-wrapper" id="tree-traversal-container" style="display: none;">
+                                <label for="tree-traversal" class="input-label">Recorrido:</label>
+                                <select id="tree-traversal" class="input-select" onchange="triggerTreeTraversal()">
+                                    <option value="inorder">Inorden (Izq, R, Der)</option>
+                                    <option value="preorder">Preorden (R, Izq, Der)</option>
+                                    <option value="postorder">Postorden (Izq, Der, R)</option>
+                                </select>
+                            </div>
+
+                            <!-- Toggle Tipo de Índice -->
+                            <div class="input-wrapper" id="index-mode-container" style="display: none;">
+                                <label for="index-mode" class="input-label">Modo Índice:</label>
+                                <select id="index-mode" class="input-select" onchange="toggleIndexMode()">
+                                    <option value="sparse">Disperso (Sparse)</option>
+                                    <option value="dense">Denso (Dense)</option>
+                                </select>
+                            </div>
+
+                            <!-- Campo de Entrada Principal -->
+                            <div class="input-wrapper" id="main-input-wrapper">
                                 <label for="target-value" id="input-data-label" class="input-label">Buscar valor:</label>
                                 <input type="number" id="target-value" class="input-data" placeholder="Ej: 16" min="0">
                             </div>
+
+                            <!-- Botones de Control de Simulación -->
                             <button id="btn-step" class="btn-primary" onclick="stepSimulation()">
                                 <span class="btn-icon">&#9654;</span> <span id="btn-step-text">Siguiente Paso</span>
                             </button>
@@ -104,7 +196,7 @@
                             <button class="btn-secondary" onclick="resetSimulation()">
                                 <span class="btn-icon">&#8634;</span> Reiniciar
                             </button>
-                            <button id="btn-random" class="btn-secondary btn-icon-only" onclick="generateRandomArray()" title="Generar nuevos valores aleatorios">
+                            <button id="btn-random" class="btn-secondary btn-icon-only" onclick="generateRandomData()" title="Generar nuevos datos">
                                 <span>&#127922; Nuevo</span>
                             </button>
                         </div>
@@ -114,17 +206,28 @@
                             Ingrese un valor a buscar y presione <strong>Siguiente Paso</strong> o <strong>Automático</strong> para iniciar el rastreo.
                         </div>
 
-                        <!-- Banner con la Fórmula Matemática Dinámica (para Hash Modulo y otros) -->
+                        <!-- Banner con la Fórmula Matemática Dinámica -->
                         <div id="formula-box" class="formula-box" style="display: none;">
-                            <span class="formula-title">Fórmula Hash:</span>
+                            <span class="formula-title">Fórmula:</span>
                             <span id="formula-expression" class="formula-expression">h(k) = k mod N</span>
                         </div>
 
-                        <!-- Visualizador del Arreglo con Punteros y Flecha Inferior -->
+                        <!-- Visualizadores Dinámicos segun el Tipo de Algoritmo -->
                         <div class="array-visualizer-wrapper">
-                            <div class="array-container" id="array-visualizer">
-                                <!-- Generado dinámicamente desde app.js -->
-                            </div>
+                            <!-- Visualizador de Arreglo / Hashing -->
+                            <div class="array-container" id="array-visualizer"></div>
+
+                            <!-- Visualizador de Árboles (SVG / Dynamic DOM Nodes) -->
+                            <div class="tree-container" id="tree-visualizer" style="display: none;"></div>
+
+                            <!-- Visualizador de Índices & Disco -->
+                            <div class="index-container" id="index-visualizer" style="display: none;"></div>
+
+                            <!-- Visualizador de Grafos / MST -->
+                            <div class="graph-container" id="graph-visualizer" style="display: none;"></div>
+
+                            <!-- Panel Calculadora de Accesos a Disco -->
+                            <div class="calculator-container" id="calculator-visualizer" style="display: none;"></div>
                         </div>
 
                         <!-- Panel de Logs / Registro de Ejecución -->
@@ -139,7 +242,7 @@
                         </div>
                     </div>
 
-                    <!-- 2. Panel de Complejidad -->
+                    <!-- 2. Panel de Complejidad & Métricas -->
                     <aside class="complexity-panel">
                         <h3>Análisis de Complejidad</h3>
                         <div class="metrics">
@@ -148,7 +251,7 @@
                                 <strong id="time-complexity">O(n)</strong>
                             </div>
                             <div class="metric-card">
-                                <span>Espacio</span>
+                                <span>Espacio / Memoria</span>
                                 <strong id="space-complexity">O(1)</strong>
                             </div>
                         </div>

@@ -862,3 +862,325 @@ h3 {
     color: #C62828;
     border: 1px solid #EF5350;
 }
+
+/* --- ESTILOS DE MÓDULOS DE ÁRBOLES E ÍNDICES --- */
+.sidebar-subtitle {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.welcome-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.welcome-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.module-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.module-card {
+    background-color: var(--bg-surface);
+    border: 1.5px solid var(--border-color);
+    border-radius: 16px;
+    padding: 32px 24px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    box-shadow: 0 8px 24px rgba(180, 130, 90, 0.06);
+}
+
+.module-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--accent-peach);
+    box-shadow: 0 16px 36px rgba(217, 99, 50, 0.15);
+    background-color: #FFFDFB;
+}
+
+.card-icon {
+    font-size: 2.8rem;
+}
+
+.module-card h3 {
+    color: var(--accent-dark-peach);
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.module-card p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    flex: 1;
+}
+
+.card-link {
+    color: var(--accent-dark-peach);
+    font-weight: 700;
+    font-size: 0.92rem;
+    margin-top: 8px;
+}
+
+/* --- VISUALIZADORES DINÁMICOS (ÁRBOLES, ÍNDICES, GRAFOS, CALCULADORA) --- */
+.tree-container, .index-container, .graph-container, .calculator-container {
+    width: 100%;
+    min-height: 340px;
+    background-color: #FFFDF9;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+/* Tree Visualizer SVG & Nodes */
+.tree-svg-canvas {
+    width: 100%;
+    height: 340px;
+    user-select: none;
+}
+
+.tree-line {
+    stroke: #D8C3B4;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    transition: all 0.3s ease;
+}
+
+.tree-line.line-active {
+    stroke: var(--accent-dark-peach);
+    stroke-width: 3.5;
+}
+
+.tree-node-circle {
+    fill: #FFFFFF;
+    stroke: #D96332;
+    stroke-width: 3;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.tree-node-circle:hover {
+    fill: #FFF0E6;
+    transform: scale(1.08);
+}
+
+.tree-node-circle.node-inspecting {
+    fill: #FFF3EA;
+    stroke: #FFB994;
+    stroke-width: 4;
+    filter: drop-shadow(0 0 8px rgba(255, 185, 148, 0.8));
+}
+
+.tree-node-circle.node-found {
+    fill: #E8F5E9;
+    stroke: #2E7D32;
+    stroke-width: 4;
+    filter: drop-shadow(0 0 10px rgba(46, 125, 50, 0.5));
+}
+
+.tree-node-circle.node-center {
+    fill: #FFF8E1;
+    stroke: #FFA000;
+    stroke-width: 4.5;
+    filter: drop-shadow(0 0 12px rgba(255, 160, 0, 0.8));
+}
+
+.tree-node-text {
+    font-size: 14px;
+    font-weight: 800;
+    fill: #2E1E17;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+
+.tree-node-subtext {
+    font-size: 10px;
+    font-weight: 700;
+    fill: #6C5549;
+    text-anchor: middle;
+}
+
+/* --- ESTILOS DE ÍNDICES Y BLOQUES DE DISCO --- */
+.index-view-wrapper {
+    display: flex;
+    gap: 30px;
+    width: 100%;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.index-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 450px;
+}
+
+.index-column-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--accent-dark-peach);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    border-bottom: 2px solid var(--accent-peach);
+    padding-bottom: 6px;
+}
+
+.index-table-card, .disk-block-card {
+    background-color: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    transition: all 0.25s ease;
+}
+
+.index-entry-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    margin: 4px 0;
+    border-radius: 6px;
+    background-color: #FFF8F2;
+    font-size: 0.88rem;
+    font-weight: 600;
+    border: 1px solid #F0DEC8;
+    transition: all 0.2s ease;
+}
+
+.index-entry-row.row-active {
+    background-color: #FFE0B2;
+    border-color: #FB8C00;
+    transform: scale(1.02);
+}
+
+.index-entry-row.row-found {
+    background-color: #C8E6C9;
+    border-color: #4CAF50;
+    color: #1B5E20;
+}
+
+.disk-block-header {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+/* --- ESTILOS DE GRAFOS Y MST --- */
+.graph-svg-canvas {
+    width: 100%;
+    height: 340px;
+}
+
+.graph-edge-line {
+    stroke: #D8C3B4;
+    stroke-width: 2.5;
+    transition: all 0.3s ease;
+}
+
+.graph-edge-line.edge-mst {
+    stroke: #2E7D32;
+    stroke-width: 4.5;
+    filter: drop-shadow(0 0 6px rgba(46, 125, 50, 0.6));
+}
+
+.graph-edge-line.edge-rejected {
+    stroke: #EF5350;
+    stroke-width: 2;
+    stroke-dasharray: 4,4;
+    opacity: 0.6;
+}
+
+.edge-weight-badge {
+    font-size: 11px;
+    font-weight: 800;
+    fill: #D96332;
+}
+
+/* --- CALCULADORA DE ACCESOS A DISCO --- */
+.calc-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.calc-inputs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+}
+
+.calc-input-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.calc-input-item label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.calc-input-item input {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border-color);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.calc-results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 10px;
+}
+
+.calc-res-card {
+    background-color: #FFF8F2;
+    border: 1.5px solid var(--accent-peach);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.calc-res-card h4 {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.calc-res-card strong {
+    font-size: 1.35rem;
+    color: var(--accent-dark-peach);
+    font-weight: 800;
+}

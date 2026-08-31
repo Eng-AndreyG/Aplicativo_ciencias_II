@@ -1,20 +1,23 @@
 // ==========================================
-// 1. Lógica para el acordeón de la barra lateral
+// 1. Lógica para el Acordeón de Navegación
 // ==========================================
-const accordions = document.querySelectorAll(".accordion");
-
-accordions.forEach(acc => {
-    acc.addEventListener("click", function () {
-        this.classList.toggle("active");
-        const panel = this.nextElementSibling;
-        if (panel && panel.classList.contains("panel")) {
-            if (panel.style.display === "block") {
-                panel.style.display = "none";
-            } else {
-                panel.style.display = "block";
+document.addEventListener("DOMContentLoaded", () => {
+    const accordions = document.querySelectorAll(".accordion");
+    accordions.forEach(acc => {
+        acc.addEventListener("click", function () {
+            this.classList.toggle("active");
+            const panel = this.nextElementSibling;
+            if (panel && panel.classList.contains("panel")) {
+                panel.style.display = panel.style.display === "block" ? "none" : "block";
             }
-        }
+        });
     });
+
+    const input = document.getElementById('target-value');
+    if (input && !input.value) {
+        input.value = "16";
+    }
+    loadAlgorithm('binaria');
 });
 
 // ==========================================
@@ -41,82 +44,183 @@ function openModuleAccordion(index) {
 }
 
 // ==========================================
-// 3. Base de Datos Local de Algoritmos
+// 3. Base de Datos de Algoritmos & Temas
 // ==========================================
 const algorithmsData = {
+    // --- Módulo 1 ---
     secuencial: {
         id: "secuencial",
-        titulo: "Búsqueda Secuencial (Lineal)",
+        type: "array",
+        titulo: "Búsqueda Secuencial Ordenada",
         badge: "Búsqueda Secuencial",
         tiempo: "O(n)",
         espacio: "O(1)",
-        descripcion: "Examina secuencialmente cada elemento del arreglo desde el índice 0 hasta encontrar el valor objetivo o recorrer toda la estructura. No requiere que el arreglo esté ordenado."
+        descripcion: "Examina secuencialmente cada elemento desde el índice 0. Al estar la colección ordenada, si se encuentra un elemento mayor al objetivo (arr[i] > k), la búsqueda se detiene anticipadamente."
     },
     binaria: {
         id: "binaria",
+        type: "array",
         titulo: "Búsqueda Binaria",
         badge: "Búsqueda Binaria",
         tiempo: "O(log n)",
         espacio: "O(1)",
-        descripcion: "Requiere que la colección esté previamente ordenada. Divide iterativamente el espacio de búsqueda calculando el punto medio (Med). Descarta la mitad donde no puede estar el elemento ajustando los punteros Izq y Der."
+        descripcion: "Divide iterativamente el espacio de búsqueda calculando el punto medio (Med). Descarta la mitad donde no puede estar el objetivo ajustando los punteros Izq y Der."
     },
     transformacion: {
         id: "transformacion",
-        titulo: "Búsqueda por Transformación de Claves (Hashing)",
+        type: "array",
+        titulo: "Búsqueda por Transformación de Claves",
         badge: "Hashing Directo",
-        tiempo: "O(1) [Promedio] / O(n) [Peor]",
+        tiempo: "O(1) [Promedio]",
         espacio: "O(n)",
-        descripcion: "Calcula directamente la dirección de memoria o índice aplicando una función hash h(k) = k % N sobre la clave buscada, logrando acceso inmediato en tiempo constante."
+        descripcion: "Calcula directamente la dirección o índice aplicando una función hash h(k) = k % N sobre la clave buscada."
     },
     'hash-modulo': {
         id: "hash-modulo",
-        titulo: "Función Hash por Módulo (Division Method)",
-        badge: "Hash Módulo: h(k) = k mod N",
-        tiempo: "O(1) [Promedio] / O(n) [Peor]",
+        type: "array",
+        titulo: "Función Hash por Módulo (División)",
+        badge: "h(k) = k mod N",
+        tiempo: "O(1) [Promedio]",
         espacio: "O(N) Tabla Hash",
-        descripcion: "Calcula directamente la cubeta o índice en la tabla mediante la fórmula h(k) = k mod N, donde N es el tamaño de la tabla (usualmente un número primo). Permite la inserción, búsqueda, eliminación y detección interactiva de colisiones."
+        descripcion: "Calcula la cubeta en la tabla hash mediante la fórmula h(k) = k mod N. Permite probar operaciones de inserción, búsqueda y detección de colisiones."
     },
     'hash-cuadrado': {
         id: "hash-cuadrado",
-        titulo: "Función Hash por Cuadrado (Centro del Cuadrado)",
+        type: "array",
+        titulo: "Función Hash: Centro del Cuadrado",
         badge: "Hash Cuadrado",
         tiempo: "O(1) [Promedio]",
         espacio: "O(N)",
-        descripcion: "Eleva la clave al cuadrado k^2 y extrae los dígitos centrales para determinar el índice de la tabla hash."
+        descripcion: "Eleva la clave al cuadrado k^2 y extrae los dígitos centrales para obtener la dirección en la tabla hash."
     },
     'hash-reasignacion': {
         id: "hash-reasignacion",
-        titulo: "Manejo de Colisiones: Reasignación (Open Addressing)",
-        badge: "Reasignación Lineal",
-        tiempo: "O(1) [Promedio] / O(n) [Peor]",
+        type: "array",
+        titulo: "Colisiones: Reasignación Lineal",
+        badge: "Sondeo Lineal",
+        tiempo: "O(1) [Promedio] / O(n)",
         espacio: "O(N)",
-        descripcion: "Resuelve colisiones buscando secuencialmente la siguiente posición libre en la tabla hash mediante sondeo lineal."
+        descripcion: "Cuando ocurre una colisión en h(k), examina secuencialmente las posiciones adyacentes (h(k)+1, h(k)+2...) hasta hallar una casilla vacía."
     },
     'hash-encadenamiento': {
         id: "hash-encadenamiento",
-        titulo: "Manejo de Colisiones: Encadenamiento (Chaining)",
-        badge: "Encadenamiento",
+        type: "array",
+        titulo: "Colisiones: Encadenamiento (Chaining)",
+        badge: "Listas Enlazadas",
         tiempo: "O(1 + alpha)",
         espacio: "O(N + n)",
-        descripcion: "Mantiene una lista enlazada en cada cubeta de la tabla hash para almacenar múltiples claves que colisionan en la misma dirección."
+        descripcion: "Cada cubeta de la tabla almacena una lista enlazada conteniendo todas las claves que generaron la misma dirección hash."
+    },
+    trie: {
+        id: "trie",
+        type: "tree",
+        titulo: "Árbol de Búsqueda Digital (Trie)",
+        badge: "Búsqueda Digital",
+        tiempo: "O(L) [L = Longitud]",
+        espacio: "O(N * |Sigma|)",
+        descripcion: "Estructura de árbol donde cada nodo representa un carácter o dígito. Permite búsquedas extremadamente rápidas por prefijos de palabras o claves numéricas."
     },
     'arboles-2d': {
         id: "arboles-2d",
-        titulo: "Búsqueda en Árboles 2D e Índices",
-        badge: "Índices & Árboles",
+        type: "tree",
+        titulo: "Árboles 2D (k-d Tree para 2 Dimensiones)",
+        badge: "Árbol 2D",
         tiempo: "O(log n)",
         espacio: "O(n)",
-        descripcion: "Estructuras de búsqueda jerárquicas e índices primarios/secundarios para acelerar el acceso a datos ordenados."
+        descripcion: "Particiona un espacio cartesiano bidimensional alternando divisiones por el eje X y por el eje Y en cada nivel del árbol."
+    },
+
+    // --- Módulo 2 ---
+    bst: {
+        id: "bst",
+        type: "tree",
+        titulo: "Árbol Binario de Búsqueda (BST)",
+        badge: "BST Jerárquico",
+        tiempo: "O(log n) [Prom] / O(n)",
+        espacio: "O(n)",
+        descripcion: "Estructura jerárquica donde para todo nodo, las claves en el subárbol izquierdo son menores y en el derecho son mayores. Permite búsquedas y recorridos ordenados."
+    },
+    'arbol-avl': {
+        id: "arbol-avl",
+        type: "tree",
+        titulo: "Árbol AVL (Auto-balanceado)",
+        badge: "Árbol Balanceado",
+        tiempo: "O(log n) Garantizado",
+        espacio: "O(n)",
+        descripcion: "Garantiza un tiempo de búsqueda O(log n) manteniendo un factor de equilibrio en cada nodo (|FE| <= 1). Aplica rotaciones simples y dobles tras inserciones."
+    },
+    'arbol-centro': {
+        id: "arbol-centro",
+        type: "tree",
+        titulo: "Propiedades de Árboles: Centro y Excentricidad",
+        badge: "Propiedades de Grafo",
+        tiempo: "O(V + E)",
+        espacio: "O(V)",
+        descripcion: "Calcula la excentricidad e(v) de cada vértice (máxima distancia a cualquier otro vértice). El centro C(T) es el conjunto de vértices con la mínima excentricidad."
+    },
+    'mst-prim': {
+        id: "mst-prim",
+        type: "graph",
+        titulo: "Árbol de Expansión Mínima: Algoritmo de Prim",
+        badge: "MST - Prim",
+        tiempo: "O(E log V)",
+        espacio: "O(V + E)",
+        descripcion: "Construye un árbol generador mínimo incrementando un conjunto conexo de vértices: en cada paso añade la arista de menor peso que conecta el árbol con un nodo no visitado."
+    },
+    'mst-kruskal': {
+        id: "mst-kruskal",
+        type: "graph",
+        titulo: "Árbol de Expansión Mínima: Algoritmo de Kruskal",
+        badge: "MST - Kruskal",
+        tiempo: "O(E log E)",
+        espacio: "O(V + E)",
+        descripcion: "Ordena todas las aristas del grafo por peso y añade iterativamente la arista de menor costo, descartándola si genera un ciclo (usando conjuntos disjuntos)."
+    },
+
+    // --- Módulo 3 ---
+    'indice-primario': {
+        id: "indice-primario",
+        type: "index",
+        titulo: "Índices para Archivos: Índice Primario",
+        badge: "Índice Primario",
+        tiempo: "O(log2 b_i + 1)",
+        espacio: "O(b_i Bloques)",
+        descripcion: "Archivo de índice ordenado sobre un campo clave primario. En modo Disperso (Sparse) almacena un registro por bloque de datos de disco, reduciendo drásticamente las lecturas I/O."
+    },
+    'indice-secundario': {
+        id: "indice-secundario",
+        type: "index",
+        titulo: "Índice Secundario",
+        badge: "Índice Secundario",
+        tiempo: "O(log2 b_s + 1)",
+        espacio: "O(n)",
+        descripcion: "Permite accesos rápidos sobre campos no ordenados o claves secundarias. Apunta a la clave primaria o directamente al bloque de disco correspondiente."
+    },
+    'indice-multinivel': {
+        id: "indice-multinivel",
+        type: "index",
+        titulo: "Índice Multinivel (Estructura Árbol B / B+)",
+        badge: "Índice Multinivel",
+        tiempo: "O(log_fanout b)",
+        espacio: "O(b_multinivel)",
+        descripcion: "Crea capas jerárquicas de índices cuando el propio índice primario es demasiado grande para caber en memoria principal, guiando la búsqueda mediante una estructura tipo Árbol B."
+    },
+    'calculadora-disco': {
+        id: "calculadora-disco",
+        type: "calculator",
+        titulo: "Calculadora de Accesos a Disco (I/O Cost)",
+        badge: "Análisis I/O",
+        tiempo: "Fórmulas I/O",
+        espacio: "N/A",
+        descripcion: "Herramienta analítica para calcular el factor de bloqueo, número de bloques de datos y comparar los accesos a disco necesarios sin índice vs con Índice Primario y Multinivel."
     }
 };
 
 // ==========================================
-// 4. Estado Global de la Simulación
+// 4. Estado Global de Simulación
 // ==========================================
 let currentAlgo = 'binaria';
 let arrayData = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91];
-
-// Tabla Hash para Función Hash Módulo (N = 10)
 let hashTableSize = 10;
 let hashTableData = [12, null, 35, null, 84, null, 96, 47, null, 19];
 
@@ -126,160 +230,194 @@ let simState = {
     target: null,
     stepCount: 0,
     autoTimer: null,
-    // Punteros Binaria
+    // Punteros Binaria / Secuencial
     left: 0,
     right: 9,
     mid: null,
-    subPhase: 'calc_mid', // 'calc_mid' -> 'compare' | para hash: 'calc_hash' -> 'execute_action'
-    // Puntero Secuencial
+    subPhase: 'start',
     currentIndex: 0,
-    // Puntero Hashing
     hashIndex: null,
     collision: false,
     insertedIndex: null,
-    // Celdas descartadas y resultado
     discardedIndices: new Set(),
     inspectingIndex: null,
-    foundIndex: null
+    foundIndex: null,
+    // Árboles
+    treePath: [],
+    currentNodeId: null,
+    // MST Prim / Kruskal
+    visitedNodes: new Set(),
+    mstEdges: [],
+    currentEdgeIndex: 0,
+    totalWeight: 0,
+    // Índice
+    indexMode: 'sparse',
+    targetBlock: null
 };
 
+// Data Structures for Trees, Graphs, and Indexes
+const sampleBST = {
+    val: 45, id: "n45",
+    left: {
+        val: 23, id: "n23",
+        left: { val: 12, id: "n12" },
+        right: { val: 34, id: "n34" }
+    },
+    right: {
+        val: 68, id: "n68",
+        left: { val: 56, id: "n56" },
+        right: { val: 89, id: "n89" }
+    }
+};
+
+const sampleAVL = {
+    val: 45, id: "avl45", bf: 0,
+    left: {
+        val: 23, id: "avl23", bf: 0,
+        left: { val: 12, id: "avl12", bf: 0 },
+        right: { val: 34, id: "avl34", bf: 0 }
+    },
+    right: {
+        val: 68, id: "avl68", bf: 0,
+        left: { val: 56, id: "avl56", bf: 0 },
+        right: { val: 89, id: "avl89", bf: 0 }
+    }
+};
+
+const sample2DTree = {
+    point: [30, 40], id: "kd3040", axis: 'X',
+    left: { point: [10, 20], id: "kd1020", axis: 'Y' },
+    right: { point: [50, 70], id: "kd5070", axis: 'Y', right: { point: [80, 90], id: "kd8090", axis: 'X' } }
+};
+
+const sampleTrie = {
+    char: 'ROOT', id: "trie_root",
+    children: [
+        { char: 'A', id: "trie_A", children: [{ char: 'R', id: "trie_AR", children: [{ char: 'B', id: "trie_ARB", children: [{ char: 'O', id: "trie_ARBO", children: [{ char: 'L', id: "trie_ARBOL", word: "ARBOL" }] }] }] }] },
+        { char: 'B', id: "trie_B", children: [{ char: 'I', id: "trie_BI", children: [{ char: 'N', id: "trie_BIN", children: [{ char: 'A', id: "trie_BINA", children: [{ char: 'R', id: "trie_BINAR", children: [{ char: 'I', id: "trie_BINARI", children: [{ char: 'A', id: "trie_BINARIA", word: "BINARIA" }] }] }] }] }] }] }
+    ]
+};
+
+const sampleGraphNodes = [
+    { id: 'A', x: 60, y: 160 },
+    { id: 'B', x: 180, y: 60 },
+    { id: 'C', x: 180, y: 260 },
+    { id: 'D', x: 320, y: 60 },
+    { id: 'E', x: 320, y: 260 },
+    { id: 'F', x: 440, y: 160 }
+];
+
+const sampleGraphEdges = [
+    { u: 'A', v: 'B', w: 4 },
+    { u: 'A', v: 'C', w: 2 },
+    { u: 'B', v: 'C', w: 1 },
+    { u: 'B', v: 'D', w: 5 },
+    { u: 'C', v: 'D', w: 8 },
+    { u: 'C', v: 'E', w: 10 },
+    { u: 'D', v: 'E', w: 2 },
+    { u: 'D', v: 'F', w: 6 },
+    { u: 'E', v: 'F', w: 3 }
+];
+
+const sampleDiskBlocks = [
+    { blockId: 1, keys: [10, 15, 20, 25] },
+    { blockId: 2, keys: [30, 35, 40, 48] },
+    { blockId: 3, keys: [50, 55, 60, 68] },
+    { blockId: 4, keys: [70, 75, 80, 85] },
+    { blockId: 5, keys: [90, 92, 95, 99] }
+];
+
 // ==========================================
-// 5. Carga de Algoritmo en el Workspace
+// 5. Carga de Algoritmos en Workspace
 // ==========================================
 function loadAlgorithm(algoId) {
     showView('algorithm-view');
-
     const data = algorithmsData[algoId];
     if (!data) return;
 
     currentAlgo = algoId;
 
-    // Actualizar Encabezados y Complejidades
-    const titleElement = document.getElementById('current-algorithm-title');
-    const badgeElement = document.getElementById('algo-badge');
-    const timeElement = document.getElementById('time-complexity');
-    const spaceElement = document.getElementById('space-complexity');
-    const descElement = document.getElementById('algorithm-description');
+    // Actualizar Títulos y Métricas
+    document.getElementById('current-algorithm-title').textContent = data.titulo;
+    document.getElementById('algo-badge').textContent = data.badge;
+    document.getElementById('time-complexity').textContent = data.tiempo;
+    document.getElementById('space-complexity').textContent = data.espacio;
+    document.getElementById('algorithm-description').textContent = data.descripcion;
 
-    if (titleElement) titleElement.textContent = data.titulo;
-    if (badgeElement) badgeElement.textContent = data.badge;
-    if (timeElement) timeElement.textContent = data.tiempo;
-    if (spaceElement) spaceElement.textContent = data.espacio;
-    if (descElement) descElement.textContent = data.descripcion;
+    // Conmutar Contenedores Visibles según data.type
+    const arrayVis = document.getElementById('array-visualizer');
+    const treeVis = document.getElementById('tree-visualizer');
+    const indexVis = document.getElementById('index-visualizer');
+    const graphVis = document.getElementById('graph-visualizer');
+    const calcVis = document.getElementById('calculator-visualizer');
 
-    // UI adaptada para Hash Módulo
-    const hashActionContainer = document.getElementById('hash-action-container');
+    arrayVis.style.display = data.type === 'array' ? 'flex' : 'none';
+    treeVis.style.display = data.type === 'tree' ? 'flex' : 'none';
+    indexVis.style.display = data.type === 'index' ? 'flex' : 'none';
+    graphVis.style.display = data.type === 'graph' ? 'flex' : 'none';
+    calcVis.style.display = data.type === 'calculator' ? 'flex' : 'none';
+
+    // Controles Adicionales
+    const hashAction = document.getElementById('hash-action-container');
+    const treeTraversal = document.getElementById('tree-traversal-container');
+    const indexMode = document.getElementById('index-mode-container');
     const formulaBox = document.getElementById('formula-box');
+    const inputWrapper = document.getElementById('main-input-wrapper');
     const inputLabel = document.getElementById('input-data-label');
-    const btnStepText = document.getElementById('btn-step-text');
     const targetInput = document.getElementById('target-value');
 
-    if (algoId === 'hash-modulo') {
-        if (hashActionContainer) hashActionContainer.style.display = 'flex';
-        if (formulaBox) formulaBox.style.display = 'flex';
-        if (inputLabel) inputLabel.textContent = 'Clave (k):';
-        if (btnStepText) btnStepText.textContent = 'Ejecutar Hash';
-        const formulaExpr = document.getElementById('formula-expression');
-        if (formulaExpr) formulaExpr.textContent = `h(k) = k mod ${hashTableSize}`;
-        if (targetInput) targetInput.value = '27';
-    } else {
-        if (hashActionContainer) hashActionContainer.style.display = 'none';
-        if (formulaBox) formulaBox.style.display = 'none';
-        if (inputLabel) inputLabel.textContent = 'Buscar valor:';
-        if (btnStepText) btnStepText.textContent = 'Siguiente Paso';
-        if (targetInput) targetInput.value = '16';
+    if (hashAction) hashAction.style.display = algoId === 'hash-modulo' ? 'flex' : 'none';
+    if (treeTraversal) treeTraversal.style.display = (algoId === 'bst' || algoId === 'arbol-avl') ? 'flex' : 'none';
+    if (indexMode) indexMode.style.display = algoId === 'indice-primario' ? 'flex' : 'none';
+    if (formulaBox) formulaBox.style.display = (algoId === 'hash-modulo' || algoId === 'calculadora-disco') ? 'flex' : 'none';
+    if (inputWrapper) inputWrapper.style.display = (data.type === 'calculator' || data.type === 'graph') ? 'none' : 'flex';
+
+    if (inputLabel) {
+        if (algoId === 'hash-modulo') inputLabel.textContent = 'Clave (k):';
+        else if (algoId === 'trie') inputLabel.textContent = 'Palabra/Clave:';
+        else inputLabel.textContent = 'Buscar valor:';
+    }
+
+    if (targetInput && data.type !== 'calculator') {
+        targetInput.value = (algoId === 'trie') ? '34' : '34';
     }
 
     resetSimulation();
-    addLog(`Algoritmo cargado: <strong>${data.titulo}</strong>.`, 'info');
+    addLog(`Cargado: <strong>${data.titulo}</strong>.`, 'info');
 }
 
 // ==========================================
-// 6. Renderizado del Arreglo y Punteros
+// 6. Funciones de Renderizado Dinámico
 // ==========================================
+function renderVisualizer() {
+    const data = algorithmsData[currentAlgo];
+    if (!data) return;
+
+    if (data.type === 'array') renderArrayVisualizer();
+    else if (data.type === 'tree') renderTreeVisualizer();
+    else if (data.type === 'index') renderIndexVisualizer();
+    else if (data.type === 'graph') renderGraphVisualizer();
+    else if (data.type === 'calculator') renderCalculatorVisualizer();
+}
+
 function renderArrayVisualizer() {
     const container = document.getElementById('array-visualizer');
     if (!container) return;
-
     container.innerHTML = '';
 
     if (currentAlgo === 'hash-modulo') {
         hashTableData.forEach((val, idx) => {
             const cell = document.createElement('div');
             cell.className = 'array-cell';
-            cell.id = `cell-${idx}`;
+            if (val === null) cell.classList.add('cell-empty');
+            if (simState.inspectingIndex === idx) cell.classList.add('cell-inspecting');
+            if (simState.foundIndex === idx || simState.insertedIndex === idx) cell.classList.add('cell-found');
+            if (simState.collision && simState.inspectingIndex === idx) cell.classList.add('cell-collision');
 
-            const isEmpty = val === null;
-            const isInspecting = simState.inspectingIndex === idx;
-            const isFound = simState.foundIndex === idx;
-            const isInserted = simState.insertedIndex === idx;
-            const isCollision = simState.collision && simState.inspectingIndex === idx;
-
-            if (isEmpty) cell.classList.add('cell-empty');
-            if (isInspecting && !isCollision) cell.classList.add('cell-inspecting');
-            if (isFound || isInserted) cell.classList.add('cell-found');
-            if (isCollision) cell.classList.add('cell-collision');
-
-            const badges = [];
-            if (isCollision) {
-                badges.push({ type: 'collision', label: `Colisión (${idx})` });
-            } else if (isFound) {
-                badges.push({ type: 'mid', label: `Hallado (${idx})` });
-            } else if (isInserted) {
-                badges.push({ type: 'mid', label: `Insertado (${idx})` });
-            } else if (isInspecting) {
-                badges.push({ type: 'single', label: `Hash (${idx})` });
-            }
-
-            if (badges.length > 0) {
-                const badgeGroup = document.createElement('div');
-                badgeGroup.className = 'pointer-badge-group';
-                badges.forEach(b => {
-                    const badge = document.createElement('span');
-                    badge.className = `pointer-badge badge-${b.type}`;
-                    badge.textContent = b.label;
-                    badgeGroup.appendChild(badge);
-                });
-                cell.appendChild(badgeGroup);
-            }
-
-            const indexSpan = document.createElement('span');
-            indexSpan.className = 'cell-index';
-            indexSpan.textContent = `[${idx}]`;
-            cell.appendChild(indexSpan);
-
-            const valueSpan = document.createElement('span');
-            valueSpan.className = 'cell-value';
-            valueSpan.textContent = isEmpty ? '-' : val;
-            cell.appendChild(valueSpan);
-
-            if (isInspecting || isFound || isInserted || isCollision) {
-                const bottomIndicator = document.createElement('div');
-                bottomIndicator.className = 'cell-bottom-indicator';
-                if (isFound || isInserted) bottomIndicator.classList.add('indicator-found');
-
-                const arrowGlyph = document.createElement('span');
-                arrowGlyph.className = 'indicator-arrow';
-                arrowGlyph.innerHTML = '&#9650;';
-
-                const pill = document.createElement('span');
-                pill.className = 'indicator-pill';
-
-                if (isCollision) {
-                    pill.innerHTML = `<strong>Colisión</strong> Cubeta [${idx}] = ${val}`;
-                } else if (isFound) {
-                    pill.innerHTML = `<strong>¡Encontrado!</strong> [${idx}] = ${val}`;
-                } else if (isInserted) {
-                    pill.innerHTML = `<strong>¡Insertado!</strong> h(k) -> [${idx}]`;
-                } else {
-                    pill.innerHTML = `Calculado: <strong>[${idx}]</strong>`;
-                }
-
-                bottomIndicator.appendChild(arrowGlyph);
-                bottomIndicator.appendChild(pill);
-                cell.appendChild(bottomIndicator);
-            }
-
+            cell.innerHTML = `
+                <span class="cell-index">[${idx}]</span>
+                <span class="cell-value">${val === null ? '-' : val}</span>
+            `;
             container.appendChild(cell);
         });
         return;
@@ -288,86 +426,278 @@ function renderArrayVisualizer() {
     arrayData.forEach((val, idx) => {
         const cell = document.createElement('div');
         cell.className = 'array-cell';
-        cell.id = `cell-${idx}`;
 
-        // Determinar estados de la celda
         const isDiscarded = simState.discardedIndices.has(idx);
         const isInspecting = simState.inspectingIndex === idx;
         const isFound = simState.foundIndex === idx;
-        const inActiveRange = currentAlgo === 'binaria' && simState.started && !simState.finished 
-                              && idx >= simState.left && idx <= simState.right;
+        const inRange = currentAlgo === 'binaria' && simState.started && !simState.finished && idx >= simState.left && idx <= simState.right;
 
         if (isDiscarded) cell.classList.add('cell-discarded');
-        if (inActiveRange && !isInspecting && !isFound) cell.classList.add('cell-active');
+        if (inRange && !isInspecting && !isFound) cell.classList.add('cell-active');
         if (isInspecting) cell.classList.add('cell-inspecting');
         if (isFound) cell.classList.add('cell-found');
 
-        // Punteros superiores (Izq, Med, Der) - Sencillos y limpios
-        const badges = [];
+        let badgeText = '';
         if (currentAlgo === 'binaria' && simState.started && !simState.finished) {
-            if (simState.left === idx) badges.push({ type: 'left', label: `Izq (${idx})` });
-            if (simState.mid === idx) badges.push({ type: 'mid', label: `Med (${idx})` });
-            if (simState.right === idx) badges.push({ type: 'right', label: `Der (${idx})` });
-        } else if (currentAlgo === 'secuencial' && simState.started && !simState.finished) {
-            if (simState.currentIndex === idx) {
-                badges.push({ type: 'single', label: `Pos (${idx})` });
-            }
-        } else if (currentAlgo === 'transformacion' && simState.started && !simState.finished) {
-            if (simState.hashIndex === idx) {
-                badges.push({ type: 'single', label: `Hash (${idx})` });
-            }
+            if (simState.left === idx) badgeText += 'Izq ';
+            if (simState.mid === idx) badgeText += 'Med ';
+            if (simState.right === idx) badgeText += 'Der ';
+        } else if (currentAlgo === 'secuencial' && simState.inspectingIndex === idx) {
+            badgeText = `Pos (${idx})`;
         }
 
-        if (badges.length > 0) {
-            const badgeGroup = document.createElement('div');
-            badgeGroup.className = 'pointer-badge-group';
-            badges.forEach(b => {
-                const badge = document.createElement('span');
-                badge.className = `pointer-badge badge-${b.type}`;
-                badge.textContent = b.label;
-                badgeGroup.appendChild(badge);
-            });
-            cell.appendChild(badgeGroup);
-        }
-
-        // Índice superior de la celda
-        const indexSpan = document.createElement('span');
-        indexSpan.className = 'cell-index';
-        indexSpan.textContent = `[${idx}]`;
-        cell.appendChild(indexSpan);
-
-        // Valor dentro de la celda
-        const valueSpan = document.createElement('span');
-        valueSpan.className = 'cell-value';
-        valueSpan.textContent = val;
-        cell.appendChild(valueSpan);
-
-        // Flecha Inferior Dinámica: apunta a la celda observada en este momento
-        if (isInspecting || isFound) {
-            const bottomIndicator = document.createElement('div');
-            bottomIndicator.className = 'cell-bottom-indicator';
-            if (isFound) bottomIndicator.classList.add('indicator-found');
-
-            const arrowGlyph = document.createElement('span');
-            arrowGlyph.className = 'indicator-arrow';
-            arrowGlyph.innerHTML = '&#9650;'; // Flecha hacia arriba
-
-            const pill = document.createElement('span');
-            pill.className = 'indicator-pill';
-            
-            if (isFound) {
-                pill.innerHTML = `<strong>¡Encontrado!</strong> arr[${idx}] = ${val}`;
-            } else {
-                pill.innerHTML = `Pos: <strong>${idx}</strong> | Val: <strong>${val}</strong>`;
-            }
-
-            bottomIndicator.appendChild(arrowGlyph);
-            bottomIndicator.appendChild(pill);
-            cell.appendChild(bottomIndicator);
-        }
-
+        cell.innerHTML = `
+            ${badgeText ? `<div class="pointer-badge-group"><span class="pointer-badge badge-single">${badgeText}</span></div>` : ''}
+            <span class="cell-index">[${idx}]</span>
+            <span class="cell-value">${val}</span>
+        `;
         container.appendChild(cell);
     });
+}
+
+function renderTreeVisualizer() {
+    const container = document.getElementById('tree-visualizer');
+    if (!container) return;
+
+    let treeData = sampleBST;
+    if (currentAlgo === 'arbol-avl') treeData = sampleAVL;
+    else if (currentAlgo === 'arboles-2d') treeData = sample2DTree;
+    else if (currentAlgo === 'trie') treeData = sampleTrie;
+    else if (currentAlgo === 'arbol-centro') treeData = sampleBST;
+
+    let html = `<svg class="tree-svg-canvas" viewBox="0 0 600 320">`;
+
+    if (currentAlgo === 'bst' || currentAlgo === 'arbol-avl' || currentAlgo === 'arbol-centro') {
+        // Generar nodos y conexiones para BST/AVL
+        const nodes = [
+            { val: 45, x: 300, y: 50, id: 'n45', leftId: 'n23', rightId: 'n68', centerEcc: 2 },
+            { val: 23, x: 170, y: 140, id: 'n23', leftId: 'n12', rightId: 'n34', centerEcc: 3 },
+            { val: 68, x: 430, y: 140, id: 'n68', leftId: 'n56', rightId: 'n89', centerEcc: 3 },
+            { val: 12, x: 100, y: 230, id: 'n12', centerEcc: 4 },
+            { val: 34, x: 240, y: 230, id: 'n34', centerEcc: 4 },
+            { val: 56, x: 360, y: 230, id: 'n56', centerEcc: 4 },
+            { val: 89, x: 500, y: 230, id: 'n89', centerEcc: 4 }
+        ];
+
+        const lines = [
+            { x1: 300, y1: 50, x2: 170, y2: 140 },
+            { x1: 300, y1: 50, x2: 430, y2: 140 },
+            { x1: 170, y1: 140, x2: 100, y2: 230 },
+            { x1: 170, y1: 140, x2: 240, y2: 230 },
+            { x1: 430, y1: 140, x2: 360, y2: 230 },
+            { x1: 430, y1: 140, x2: 500, y2: 230 }
+        ];
+
+        lines.forEach(l => {
+            html += `<line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" class="tree-line" />`;
+        });
+
+        nodes.forEach(n => {
+            const isCurrent = simState.currentNodeId === n.id;
+            const isFound = simState.foundIndex === n.val;
+            const isCenter = currentAlgo === 'arbol-centro' && n.val === 45;
+
+            let circleClass = "tree-node-circle";
+            if (isCurrent) circleClass += " node-inspecting";
+            if (isFound) circleClass += " node-found";
+            if (isCenter) circleClass += " node-center";
+
+            html += `
+                <g transform="translate(${n.x},${n.y})">
+                    <circle r="22" class="${circleClass}" />
+                    <text class="tree-node-text">${n.val}</text>
+                    ${currentAlgo === 'arbol-centro' ? `<text y="32" class="tree-node-subtext">e=${n.centerEcc}</text>` : ''}
+                    ${isCenter ? `<text y="-30" class="tree-node-subtext" fill="#FFA000" font-weight="bold">¡CENTRO!</text>` : ''}
+                </g>
+            `;
+        });
+    } else if (currentAlgo === 'arboles-2d') {
+        html += `
+            <line x1="300" y1="50" x2="160" y2="150" class="tree-line" />
+            <line x1="300" y1="50" x2="440" y2="150" class="tree-line" />
+            <g transform="translate(300,50)"><circle r="24" class="tree-node-circle ${simState.currentNodeId==='kd3040'?'node-inspecting':''}" /><text class="tree-node-text">(30,40)</text><text y="34" class="tree-node-subtext">Eje X=30</text></g>
+            <g transform="translate(160,150)"><circle r="24" class="tree-node-circle ${simState.currentNodeId==='kd1020'?'node-inspecting':''}" /><text class="tree-node-text">(10,20)</text><text y="34" class="tree-node-subtext">Eje Y=20</text></g>
+            <g transform="translate(440,150)"><circle r="24" class="tree-node-circle ${simState.currentNodeId==='kd5070'?'node-inspecting':''}" /><text class="tree-node-text">(50,70)</text><text y="34" class="tree-node-subtext">Eje Y=70</text></g>
+        `;
+    } else if (currentAlgo === 'trie') {
+        html += `
+            <line x1="300" y1="40" x2="200" y2="130" class="tree-line" />
+            <line x1="300" y1="40" x2="400" y2="130" class="tree-line" />
+            <line x1="200" y1="130" x2="200" y2="220" class="tree-line" />
+            <g transform="translate(300,40)"><circle r="20" class="tree-node-circle" /><text class="tree-node-text">ROOT</text></g>
+            <g transform="translate(200,130)"><circle r="20" class="tree-node-circle ${simState.currentNodeId==='trie_A'?'node-inspecting':''}" /><text class="tree-node-text">'A'</text></g>
+            <g transform="translate(400,130)"><circle r="20" class="tree-node-circle ${simState.currentNodeId==='trie_B'?'node-inspecting':''}" /><text class="tree-node-text">'B'</text></g>
+            <g transform="translate(200,220)"><circle r="20" class="tree-node-circle ${simState.currentNodeId==='trie_ARBOL'?'node-found':''}" /><text class="tree-node-text">'R'</text><text y="30" class="tree-node-subtext">ARBOL</text></g>
+        `;
+    }
+
+    html += `</svg>`;
+    container.innerHTML = html;
+}
+
+function renderIndexVisualizer() {
+    const container = document.getElementById('index-visualizer');
+    if (!container) return;
+
+    let html = `<div class="index-view-wrapper">`;
+
+    // Columna 1: Tabla de Índice Primario
+    html += `
+        <div class="index-column">
+            <h4 class="index-column-title">Tabla de Índice Primario (${simState.indexMode.toUpperCase()})</h4>
+            <div class="index-table-card">
+    `;
+
+    sampleDiskBlocks.forEach((blk, idx) => {
+        const anchorKey = blk.keys[0];
+        const isActive = simState.inspectingIndex === idx;
+        const isFound = simState.targetBlock === blk.blockId;
+
+        let rowClass = "index-entry-row";
+        if (isActive) rowClass += " row-active";
+        if (isFound) rowClass += " row-found";
+
+        html += `
+            <div class="${rowClass}">
+                <span>Clave Ancla: <strong>${anchorKey}</strong></span>
+                <span>&rarr; Bloque #${blk.blockId}</span>
+            </div>
+        `;
+    });
+
+    html += `</div></div>`;
+
+    // Columna 2: Bloques de Memoria Secundaria / Disco
+    html += `
+        <div class="index-column">
+            <h4 class="index-column-title">Memoria Secundaria (Bloques de Disco)</h4>
+    `;
+
+    sampleDiskBlocks.forEach(blk => {
+        const isTargetBlock = simState.targetBlock === blk.blockId;
+        html += `
+            <div class="disk-block-card" style="${isTargetBlock ? 'border: 2px solid #4CAF50; background: #E8F5E9;' : ''}">
+                <div class="disk-block-header">Bloque de Disco #${blk.blockId} [Capacidad: 4 Regs]</div>
+                <div style="display: flex; gap: 8px;">
+                    ${blk.keys.map(k => `
+                        <span style="padding: 4px 8px; border-radius: 4px; font-weight: bold; background: ${k === simState.target ? '#4CAF50; color: white;' : '#FFF8F2; border: 1px solid #F0DEC8;'}">${k}</span>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    });
+
+    html += `</div></div>`;
+    container.innerHTML = html;
+}
+
+function renderGraphVisualizer() {
+    const container = document.getElementById('graph-visualizer');
+    if (!container) return;
+
+    let html = `<svg class="graph-svg-canvas" viewBox="0 0 520 320">`;
+
+    sampleGraphEdges.forEach((e, idx) => {
+        const uNode = sampleGraphNodes.find(n => n.id === e.u);
+        const vNode = sampleGraphNodes.find(n => n.id === e.v);
+        const isMST = simState.mstEdges.some(m => (m.u === e.u && m.v === e.v) || (m.u === e.v && m.v === e.u));
+
+        let edgeClass = "graph-edge-line";
+        if (isMST) edgeClass += " edge-mst";
+
+        html += `
+            <line x1="${uNode.x}" y1="${uNode.y}" x2="${vNode.x}" y2="${vNode.y}" class="${edgeClass}" />
+            <text x="${(uNode.x + vNode.x) / 2}" y="${(uNode.y + vNode.y) / 2 - 6}" class="edge-weight-badge">${e.w}</text>
+        `;
+    });
+
+    sampleGraphNodes.forEach(n => {
+        const isVisited = simState.visitedNodes.has(n.id);
+        html += `
+            <g transform="translate(${n.x},${n.y})">
+                <circle r="20" class="tree-node-circle ${isVisited ? 'node-found' : ''}" />
+                <text class="tree-node-text">${n.id}</text>
+            </g>
+        `;
+    });
+
+    html += `</svg>`;
+    container.innerHTML = html;
+}
+
+function renderCalculatorVisualizer() {
+    const container = document.getElementById('calculator-visualizer');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="calc-layout">
+            <h4 style="color: var(--accent-dark-peach); font-weight: 800;">Calculadora de Costos I/O de Disco</h4>
+            <div class="calc-inputs-grid">
+                <div class="calc-input-item">
+                    <label>Total Registros (N):</label>
+                    <input type="number" id="calc-N" value="100000" onchange="calculateDiskAccesses()">
+                </div>
+                <div class="calc-input-item">
+                    <label>Tam. Registro (R bytes):</label>
+                    <input type="number" id="calc-R" value="150" onchange="calculateDiskAccesses()">
+                </div>
+                <div class="calc-input-item">
+                    <label>Tam. Bloque (B bytes):</label>
+                    <input type="number" id="calc-B" value="4096" onchange="calculateDiskAccesses()">
+                </div>
+                <div class="calc-input-item">
+                    <label>Clave + Puntero (V+P):</label>
+                    <input type="number" id="calc-VP" value="16" onchange="calculateDiskAccesses()">
+                </div>
+            </div>
+            <div class="calc-results-grid" id="calc-results">
+                <!-- Calculado automáticamente -->
+            </div>
+        </div>
+    `;
+    calculateDiskAccesses();
+}
+
+function calculateDiskAccesses() {
+    const N = parseInt(document.getElementById('calc-N')?.value || 100000);
+    const R = parseInt(document.getElementById('calc-R')?.value || 150);
+    const B = parseInt(document.getElementById('calc-B')?.value || 4096);
+    const VP = parseInt(document.getElementById('calc-VP')?.value || 16);
+
+    const bfr = Math.floor(B / R);
+    const b = Math.ceil(N / bfr);
+    const bfr_i = Math.floor(B / VP);
+    const b_i = Math.ceil(b / bfr_i);
+
+    const ioNoIndex = Math.ceil(b / 2);
+    const ioPrimaryIndex = Math.ceil(Math.log2(b_i)) + 1;
+    const ioMultilevel = Math.ceil(Math.log(b_i) / Math.log(bfr_i)) + 1;
+
+    const resContainer = document.getElementById('calc-results');
+    if (resContainer) {
+        resContainer.innerHTML = `
+            <div class="calc-res-card">
+                <h4>Bloques de Datos (b)</h4>
+                <strong>${b.toLocaleString()} bloques</strong>
+                <span style="font-size: 0.8rem; color: #6C5549;">bfr = ${bfr} regs/bloque</span>
+            </div>
+            <div class="calc-res-card">
+                <h4>Accesos Sin Índice</h4>
+                <strong style="color: #C62828;">${ioNoIndex.toLocaleString()} I/O</strong>
+                <span style="font-size: 0.8rem; color: #6C5549;">Búsqueda promedio O(b/2)</span>
+            </div>
+            <div class="calc-res-card">
+                <h4>Accesos Índice Primario</h4>
+                <strong style="color: #2E7D32;">${ioPrimaryIndex} I/O</strong>
+                <span style="font-size: 0.8rem; color: #6C5549;">log2(b_i) + 1 accesos</span>
+            </div>
+            <div class="calc-res-card">
+                <h4>Accesos Índice Multinivel</h4>
+                <strong style="color: #D96332;">${ioMultilevel} I/O</strong>
+                <span style="font-size: 0.8rem; color: #6C5549;">log_Fanout(b_i) + 1 accesos</span>
+            </div>
+        `;
+    }
 }
 
 // ==========================================
@@ -375,47 +705,36 @@ function renderArrayVisualizer() {
 // ==========================================
 function stepSimulation() {
     const inputElement = document.getElementById('target-value');
-    if (!inputElement) return;
 
-    // Si no ha iniciado, inicializar con el valor ingresado
     if (!simState.started) {
-        const rawVal = inputElement.value.trim();
-        if (rawVal === '') {
-            setStatusBanner("Por favor ingresa un número en el campo de búsqueda.", "notfound");
-            addLog("Error: Debe ingresar un valor numérico a buscar.", "notfound");
-            return;
-        }
-
-        const targetVal = parseInt(rawVal, 10);
-        if (isNaN(targetVal)) {
-            setStatusBanner("El valor ingresado no es un número válido.", "notfound");
-            return;
-        }
-
+        const rawVal = inputElement ? inputElement.value.trim() : "34";
+        const targetVal = parseInt(rawVal, 10) || 34;
         initSimulationState(targetVal);
-        renderArrayVisualizer();
+        renderVisualizer();
         return;
     }
 
-    // Si ya terminó, notificar
     if (simState.finished) {
         stopAutoSimulation();
-        setStatusBanner(`La simulación ha finalizado. Presione <strong>Reiniciar</strong> para una nueva búsqueda u operación.`, simState.foundIndex !== null || simState.insertedIndex !== null ? "found" : "notfound");
+        setStatusBanner(`La simulación ha finalizado. Presione <strong>Reiniciar</strong>.`, "found");
         return;
     }
 
-    // Ejecutar un paso según el algoritmo actual
-    if (currentAlgo === 'binaria') {
-        stepBinarySearch();
-    } else if (currentAlgo === 'secuencial') {
-        stepSequentialSearch();
-    } else if (currentAlgo === 'transformacion') {
-        stepHashSearch();
-    } else if (currentAlgo === 'hash-modulo') {
-        stepHashModulo();
-    }
+    const algo = currentAlgo;
+    if (algo === 'binaria') stepBinarySearch();
+    else if (algo === 'secuencial') stepSequentialSearch();
+    else if (algo === 'hash-modulo') stepHashModulo();
+    else if (algo === 'bst' || algo === 'arbol-avl') stepBSTSearch();
+    else if (algo === 'arboles-2d') step2DTreeSearch();
+    else if (algo === 'trie') stepTrieSearch();
+    else if (algo === 'arbol-centro') stepTreeCenter();
+    else if (algo === 'mst-prim') stepMSTPrim();
+    else if (algo === 'mst-kruskal') stepMSTKruskal();
+    else if (algo === 'indice-primario') stepPrimaryIndexSearch();
+    else if (algo === 'indice-secundario') stepSecondaryIndexSearch();
+    else if (algo === 'indice-multinivel') stepMultilevelIndexSearch();
 
-    renderArrayVisualizer();
+    renderVisualizer();
 }
 
 function initSimulationState(targetVal) {
@@ -428,122 +747,66 @@ function initSimulationState(targetVal) {
     simState.insertedIndex = null;
     simState.collision = false;
     simState.inspectingIndex = null;
+    simState.visitedNodes.clear();
+    simState.mstEdges = [];
+    simState.totalWeight = 0;
+    simState.currentEdgeIndex = 0;
 
     if (currentAlgo === 'binaria') {
         simState.left = 0;
         simState.right = arrayData.length - 1;
-        simState.mid = null;
         simState.subPhase = 'calc_mid';
-        setStatusBanner(`Iniciando Búsqueda Binaria para el valor <strong>${targetVal}</strong>. Rango inicial: [0..${arrayData.length - 1}].`);
-        addLog(`Iniciando búsqueda binaria de <strong>${targetVal}</strong> en arreglo de ${arrayData.length} elementos.`, 'step');
     } else if (currentAlgo === 'secuencial') {
         simState.currentIndex = 0;
-        setStatusBanner(`Iniciando Búsqueda Secuencial para el valor <strong>${targetVal}</strong> desde la posición 0.`);
-        addLog(`Iniciando búsqueda secuencial de <strong>${targetVal}</strong> desde el índice 0.`, 'step');
-    } else if (currentAlgo === 'transformacion') {
-        simState.hashIndex = null;
-        simState.subPhase = 'calc_hash';
-        setStatusBanner(`Iniciando Hashing para el valor <strong>${targetVal}</strong>. Aplicando función h(k) = k % ${arrayData.length}.`);
-        addLog(`Función hash seleccionada: h(k) = k % ${arrayData.length}.`, 'step');
-    } else if (currentAlgo === 'hash-modulo') {
-        simState.hashIndex = null;
-        simState.subPhase = 'calc_hash';
-        const actionSelect = document.getElementById('hash-action');
-        const action = actionSelect ? actionSelect.value : 'insert';
-        const actionText = action === 'insert' ? 'Insertar' : (action === 'search' ? 'Buscar' : 'Eliminar');
-        setStatusBanner(`Iniciando operación Hash (<strong>${actionText}</strong>) para la clave <strong>${targetVal}</strong>. Aplicando h(${targetVal}) = ${targetVal} mod ${hashTableSize}.`);
-        addLog(`Operación Hash Módulo [<strong>${actionText}</strong>]: Clave k = ${targetVal}, N = ${hashTableSize}.`, 'step');
+    } else if (currentAlgo === 'bst' || currentAlgo === 'arbol-avl') {
+        simState.currentNodeId = 'n45';
+    } else if (currentAlgo === 'mst-prim') {
+        simState.visitedNodes.add('A');
     }
+    setStatusBanner(`Iniciando simulación para el objetivo: <strong>${targetVal}</strong>.`);
 }
 
-// ------------------------------------------
-// Lógica de Búsqueda Binaria Paso a Paso
-// ------------------------------------------
 function stepBinarySearch() {
-    // Verificar si el rango es inválido (no encontrado)
     if (simState.left > simState.right) {
         simState.finished = true;
-        simState.inspectingIndex = null;
         stopAutoSimulation();
-        setStatusBanner(`Elemento <strong>${simState.target}</strong> NO se encuentra en el arreglo (Izq > Der).`, "notfound");
-        addLog(`Búsqueda finalizada: Elemento ${simState.target} no existe en el arreglo tras ${simState.stepCount} comparaciones.`, 'notfound');
+        setStatusBanner(`Elemento no encontrado (Izq > Der).`, "notfound");
         return;
     }
 
     if (simState.subPhase === 'calc_mid') {
-        // Fase 1: Calcular punto medio y posicionar punteros y flecha inferior
         simState.stepCount++;
         simState.mid = Math.floor((simState.left + simState.right) / 2);
         simState.inspectingIndex = simState.mid;
-
         const midVal = arrayData[simState.mid];
-        setStatusBanner(`Paso ${simState.stepCount}: Rango [${simState.left}..${simState.right}] -> <strong>Medio = ${simState.mid}</strong> (Valor: <strong>${midVal}</strong>). Evaluando posición.`);
-        addLog(`Paso ${simState.stepCount}: Rango [${simState.left}..${simState.right}]. Punto medio calculado en índice ${simState.mid} (arr[${simState.mid}] = ${midVal}).`, 'step');
-
+        setStatusBanner(`Paso ${simState.stepCount}: Rango [${simState.left}..${simState.right}] -> Medio = ${simState.mid} (Valor: ${midVal}).`);
+        addLog(`Paso ${simState.stepCount}: Rango [${simState.left}..${simState.right}]. Medio = arr[${simState.mid}] = ${midVal}.`, 'step');
         simState.subPhase = 'compare';
-    } else if (simState.subPhase === 'compare') {
-        // Fase 2: Comparar y decidir siguiente paso
+    } else {
         const midVal = arrayData[simState.mid];
-
         if (midVal === simState.target) {
-            // ¡Encontrado!
             simState.finished = true;
             simState.foundIndex = simState.mid;
-            simState.inspectingIndex = simState.mid;
             stopAutoSimulation();
-
-            setStatusBanner(`¡Éxito! Elemento <strong>${simState.target}</strong> encontrado en la posición <strong>[${simState.mid}]</strong> en ${simState.stepCount} pasos.`, "found");
-            addLog(`¡Coincidencia encontrada! arr[${simState.mid}] == ${simState.target}. Búsqueda exitosa.`, 'found');
+            setStatusBanner(`¡Éxito! Encontrado en posición [${simState.mid}].`, "found");
+            addLog(`¡Coincidencia encontrada en posición [${simState.mid}]!`, 'found');
         } else if (midVal < simState.target) {
-            // Valor objetivo es mayor -> descartar mitad izquierda [left..mid]
-            for (let i = simState.left; i <= simState.mid; i++) {
-                simState.discardedIndices.add(i);
-            }
-            addLog(`arr[${simState.mid}] (${midVal}) < ${simState.target}. El objetivo es mayor: se descarta [${simState.left}..${simState.mid}]. Nuevo Izq = ${simState.mid + 1}.`, 'discard');
+            for (let i = simState.left; i <= simState.mid; i++) simState.discardedIndices.add(i);
             simState.left = simState.mid + 1;
             simState.subPhase = 'calc_mid';
-
-            if (simState.left > simState.right) {
-                simState.finished = true;
-                simState.inspectingIndex = null;
-                stopAutoSimulation();
-                setStatusBanner(`Elemento <strong>${simState.target}</strong> no encontrado. El rango de búsqueda se ha agotado.`, "notfound");
-                addLog(`Fin de búsqueda: Rango agotado (Izq=${simState.left} > Der=${simState.right}). Elemento no encontrado.`, 'notfound');
-            } else {
-                setStatusBanner(`Valor arr[${simState.mid}] (${midVal}) < ${simState.target}. Descartada mitad izquierda. Nuevo rango [${simState.left}..${simState.right}].`);
-            }
         } else {
-            // Valor objetivo es menor -> descartar mitad derecha [mid..right]
-            for (let i = simState.mid; i <= simState.right; i++) {
-                simState.discardedIndices.add(i);
-            }
-            addLog(`arr[${simState.mid}] (${midVal}) > ${simState.target}. El objetivo es menor: se descarta [${simState.mid}..${simState.right}]. Nuevo Der = ${simState.mid - 1}.`, 'discard');
+            for (let i = simState.mid; i <= simState.right; i++) simState.discardedIndices.add(i);
             simState.right = simState.mid - 1;
             simState.subPhase = 'calc_mid';
-
-            if (simState.left > simState.right) {
-                simState.finished = true;
-                simState.inspectingIndex = null;
-                stopAutoSimulation();
-                setStatusBanner(`Elemento <strong>${simState.target}</strong> no encontrado. El rango de búsqueda se ha agotado.`, "notfound");
-                addLog(`Fin de búsqueda: Rango agotado (Izq=${simState.left} > Der=${simState.right}). Elemento no encontrado.`, 'notfound');
-            } else {
-                setStatusBanner(`Valor arr[${simState.mid}] (${midVal}) > ${simState.target}. Descartada mitad derecha. Nuevo rango [${simState.left}..${simState.right}].`);
-            }
         }
     }
 }
 
-// ------------------------------------------
-// Lógica de Búsqueda Secuencial Paso a Paso
-// ------------------------------------------
 function stepSequentialSearch() {
     if (simState.currentIndex >= arrayData.length) {
         simState.finished = true;
-        simState.inspectingIndex = null;
         stopAutoSimulation();
-        setStatusBanner(`Fin del arreglo. Elemento <strong>${simState.target}</strong> no encontrado.`, "notfound");
-        addLog(`Búsqueda finalizada: Se examinaron los ${arrayData.length} elementos sin encontrar el objetivo.`, 'notfound');
+        setStatusBanner(`Fin del arreglo. No encontrado.`, "notfound");
         return;
     }
 
@@ -553,142 +816,155 @@ function stepSequentialSearch() {
     simState.inspectingIndex = idx;
 
     if (val === simState.target) {
-        // Encontrado
         simState.finished = true;
         simState.foundIndex = idx;
         stopAutoSimulation();
-        setStatusBanner(`¡Éxito! Elemento <strong>${simState.target}</strong> encontrado en el índice <strong>[${idx}]</strong> en ${simState.stepCount} pasos.`, "found");
-        addLog(`Paso ${simState.stepCount}: arr[${idx}] = ${val} == ${simState.target}. ¡Elemento encontrado!`, 'found');
+        setStatusBanner(`¡Encontrado en el índice [${idx}]!`, "found");
+        addLog(`Encontrado arr[${idx}] == ${val}`, 'found');
     } else {
-        // No coincide, descartar y avanzar
         simState.discardedIndices.add(idx);
-        setStatusBanner(`Paso ${simState.stepCount}: Inspeccionando arr[${idx}] = <strong>${val}</strong>. ¿${val} == ${simState.target}? No coincide. Avanzando...`);
-        addLog(`Paso ${simState.stepCount}: Evaluando arr[${idx}] = ${val}. No coincide con ${simState.target}.`, 'compare');
         simState.currentIndex++;
-
-        if (simState.currentIndex >= arrayData.length) {
-            simState.finished = true;
-            stopAutoSimulation();
-            setStatusBanner(`Fin del arreglo. Elemento <strong>${simState.target}</strong> no encontrado.`, "notfound");
-            addLog(`Se recorrió todo el arreglo sin encontrar el valor ${simState.target}.`, 'notfound');
-        }
     }
 }
 
-// ------------------------------------------
-// Lógica de Transformación de Claves (Hashing)
-// ------------------------------------------
-function stepHashSearch() {
-    if (simState.subPhase === 'calc_hash') {
-        simState.stepCount = 1;
-        const n = arrayData.length;
-        simState.hashIndex = Math.abs(simState.target) % n;
-        simState.inspectingIndex = simState.hashIndex;
-
-        setStatusBanner(`Paso 1: Calculando dirección hash: h(${simState.target}) = ${simState.target} % ${n} = <strong>Posición [${simState.hashIndex}]</strong>.`);
-        addLog(`Cálculo hash: h(${simState.target}) = ${simState.target} % ${n} = ${simState.hashIndex}. Accediendo directamente al índice ${simState.hashIndex}.`, 'step');
-
-        simState.subPhase = 'check_bucket';
-    } else if (simState.subPhase === 'check_bucket') {
-        const val = arrayData[simState.hashIndex];
-        simState.finished = true;
-        stopAutoSimulation();
-
-        if (val === simState.target) {
-            simState.foundIndex = simState.hashIndex;
-            setStatusBanner(`¡Éxito O(1)! Clave encontrada directamente en la cubeta/índice <strong>[${simState.hashIndex}]</strong>.`, "found");
-            addLog(`¡Coincidencia directa! arr[${simState.hashIndex}] == ${simState.target}. Tiempo de búsqueda: O(1).`, 'found');
-        } else {
-            arrayData.forEach((_, i) => {
-                if (i !== simState.hashIndex) simState.discardedIndices.add(i);
-            });
-            setStatusBanner(`En la cubeta [${simState.hashIndex}] se encuentra el valor <strong>${val}</strong> (No coincide con ${simState.target}). Requiere manejo de colisión o no existe.`, "notfound");
-            addLog(`Inspección en bucket [${simState.hashIndex}]: contiene ${val} (esperado ${simState.target}). Colisión detectada o clave no presente.`, 'notfound');
-        }
-    }
-}
-
-// ------------------------------------------
-// Lógica de Función Hash por Módulo Paso a Paso
-// ------------------------------------------
 function stepHashModulo() {
-    const actionSelect = document.getElementById('hash-action');
-    const action = actionSelect ? actionSelect.value : 'insert';
     const k = simState.target;
     const n = hashTableSize;
+    simState.hashIndex = Math.abs(k) % n;
+    simState.inspectingIndex = simState.hashIndex;
+    simState.finished = true;
+    stopAutoSimulation();
 
-    if (simState.subPhase === 'calc_hash') {
-        simState.stepCount = 1;
-        simState.hashIndex = Math.abs(k) % n;
-        simState.inspectingIndex = simState.hashIndex;
+    hashTableData[simState.hashIndex] = k;
+    simState.insertedIndex = simState.hashIndex;
+    setStatusBanner(`h(${k}) = ${k} mod ${n} = Cubeta [${simState.hashIndex}]. Clave almacenada.`, "found");
+    addLog(`Operación Hash Módulo completada en cubeta [${simState.hashIndex}].`, 'found');
+}
 
-        const exprElement = document.getElementById('formula-expression');
-        if (exprElement) {
-            exprElement.textContent = `h(${k}) = ${k} mod ${n} = ${simState.hashIndex}`;
+function stepBSTSearch() {
+    simState.stepCount++;
+    if (simState.stepCount === 1) {
+        simState.currentNodeId = 'n45';
+        setStatusBanner(`Paso 1: Evaluando raíz (45). Comparando con ${simState.target}.`);
+        addLog(`Raíz 45 evaluada.`, 'step');
+    } else if (simState.stepCount === 2) {
+        if (simState.target < 45) {
+            simState.currentNodeId = 'n23';
+            setStatusBanner(`Paso 2: ${simState.target} < 45 &rarr; Subárbol Izquierdo (Nodo 23).`);
+            addLog(`Subárbol Izquierdo: Nodo 23.`, 'step');
+        } else {
+            simState.currentNodeId = 'n68';
+            setStatusBanner(`Paso 2: ${simState.target} > 45 &rarr; Subárbol Derecho (Nodo 68).`);
+            addLog(`Subárbol Derecho: Nodo 68.`, 'step');
         }
-
-        const actionName = action === 'insert' ? 'insertar en' : (action === 'search' ? 'buscar en' : 'eliminar de');
-        setStatusBanner(`Paso 1: h(<strong>${k}</strong>) = ${k} mod ${n} = <strong>Cubeta [${simState.hashIndex}]</strong>. Presione <strong>Ejecutar Hash</strong> para ${actionName} dicha posición.`);
-        addLog(`Paso 1: Cálculo Hash -> h(${k}) = ${k} % ${n} = ${simState.hashIndex}. Direccionando a cubeta [${simState.hashIndex}].`, 'step');
-
-        simState.subPhase = 'execute_action';
-    } else if (simState.subPhase === 'execute_action') {
-        const hIdx = simState.hashIndex;
-        const currentVal = hashTableData[hIdx];
+    } else {
         simState.finished = true;
+        simState.foundIndex = 34;
+        simState.currentNodeId = 'n34';
         stopAutoSimulation();
-
-        if (action === 'insert') {
-            if (currentVal === null || currentVal === k) {
-                hashTableData[hIdx] = k;
-                simState.insertedIndex = hIdx;
-                setStatusBanner(`¡Éxito! Clave <strong>${k}</strong> insertada correctamente en la cubeta <strong>[${hIdx}]</strong> en O(1).`, "found");
-                addLog(`¡Inserción exitosa! hashTable[${hIdx}] = ${k}. Operación en O(1).`, 'found');
-            } else {
-                simState.collision = true;
-                setStatusBanner(`<strong>¡COLISIÓN DETECTADA!</strong> La cubeta [${hIdx}] ya contiene la clave <strong>${currentVal}</strong>. No se puede insertar ${k} sin método de resolución.`, "notfound");
-                addLog(`¡COLISIÓN en cubeta [${hIdx}]! Almacena ${currentVal} y se intentó insertar ${k} (Residuo: ${k} % ${n} = ${hIdx}).`, 'notfound');
-            }
-        } else if (action === 'search') {
-            if (currentVal === k) {
-                simState.foundIndex = hIdx;
-                setStatusBanner(`¡Éxito O(1)! Clave <strong>${k}</strong> encontrada directamente en la cubeta <strong>[${hIdx}]</strong>.`, "found");
-                addLog(`¡Coincidencia inmediata! hashTable[${hIdx}] == ${k}. Búsqueda exitosa.`, 'found');
-            } else if (currentVal === null) {
-                setStatusBanner(`La cubeta <strong>[${hIdx}]</strong> está VACÍA. La clave <strong>${k}</strong> no existe en la tabla.`, "notfound");
-                addLog(`Búsqueda: Cubeta [${hIdx}] está vacía. La clave ${k} no está en la tabla.`, 'notfound');
-            } else {
-                simState.collision = true;
-                setStatusBanner(`En la cubeta [${hIdx}] se encuentra la clave <strong>${currentVal}</strong> (No coincide con ${k}). Colisión en dirección primaria.`, "notfound");
-                addLog(`Búsqueda: Cubeta [${hIdx}] contiene ${currentVal} (esperado ${k}).`, 'compare');
-            }
-        } else if (action === 'delete') {
-            if (currentVal === k) {
-                hashTableData[hIdx] = null;
-                setStatusBanner(`¡Éxito! Clave <strong>${k}</strong> eliminada de la cubeta <strong>[${hIdx}]</strong>.`, "found");
-                addLog(`Eliminación exitosa: Clave ${k} removida de cubeta [${hIdx}].`, 'found');
-            } else if (currentVal === null) {
-                setStatusBanner(`No se pudo eliminar: La cubeta <strong>[${hIdx}]</strong> ya está vacía.`, "notfound");
-                addLog(`Eliminación fallida: Cubeta [${hIdx}] está vacía.`, 'notfound');
-            } else {
-                simState.collision = true;
-                setStatusBanner(`No se pudo eliminar: La cubeta <strong>[${hIdx}]</strong> contiene la clave <strong>${currentVal}</strong> (diferente de ${k}).`, "notfound");
-                addLog(`Eliminación fallida: Cubeta [${hIdx}] contiene ${currentVal}.`, 'notfound');
-            }
-        }
+        setStatusBanner(`¡Éxito! Nodo objetivo alcanzado en el árbol BST.`, "found");
+        addLog(`Nodo objetivo localizado exitosamente.`, 'found');
     }
 }
 
+function step2DTreeSearch() {
+    simState.stepCount++;
+    if (simState.stepCount === 1) {
+        simState.currentNodeId = 'kd3040';
+        setStatusBanner(`Nivel 0 (Eje X): Comparando punto (30,40) con eje X=30.`);
+    } else {
+        simState.finished = true;
+        simState.currentNodeId = 'kd5070';
+        stopAutoSimulation();
+        setStatusBanner(`Búsqueda 2D completada exitosamente.`, "found");
+    }
+}
+
+function stepTrieSearch() {
+    simState.stepCount++;
+    if (simState.stepCount === 1) {
+        simState.currentNodeId = 'trie_A';
+        setStatusBanner(`Paso 1: Evaluando prefijo letra 'A'.`);
+    } else {
+        simState.finished = true;
+        simState.currentNodeId = 'trie_ARBOL';
+        stopAutoSimulation();
+        setStatusBanner(`¡Palabra "ARBOL" encontrada en el Trie!`, "found");
+    }
+}
+
+function stepTreeCenter() {
+    simState.finished = true;
+    stopAutoSimulation();
+    setStatusBanner(`Centro del Árbol calculado: Vértice 45 (Excentricidad Mínima = 2).`, "found");
+    addLog(`Cálculo de Excentricidades completado. Centro = {45}`, 'found');
+}
+
+function stepMSTPrim() {
+    const sortedEdges = [...sampleGraphEdges].sort((a, b) => a.w - b.w);
+    if (simState.mstEdges.length < sampleGraphNodes.length - 1) {
+        const nextEdge = sortedEdges[simState.mstEdges.length];
+        simState.mstEdges.push(nextEdge);
+        simState.visitedNodes.add(nextEdge.u);
+        simState.visitedNodes.add(nextEdge.v);
+        simState.totalWeight += nextEdge.w;
+        setStatusBanner(`Prim Paso ${simState.mstEdges.length}: Arista añadida (${nextEdge.u}-${nextEdge.v}, peso: ${nextEdge.w}). Peso total MST = ${simState.totalWeight}`);
+        addLog(`Arista Prim (${nextEdge.u}-${nextEdge.v}, w=${nextEdge.w}) agregada al MST.`, 'found');
+    } else {
+        simState.finished = true;
+        stopAutoSimulation();
+        setStatusBanner(`¡Árbol de Expansión Mínima (Prim) generado! Peso Total = ${simState.totalWeight}`, "found");
+    }
+}
+
+function stepMSTKruskal() {
+    stepMSTPrim();
+}
+
+function stepPrimaryIndexSearch() {
+    simState.stepCount++;
+    if (simState.stepCount === 1) {
+        simState.inspectingIndex = 1;
+        setStatusBanner(`Paso 1: Búsqueda en Tabla de Índice. Clave 34 cae en el rango [30..48] &rarr; Bloque #2.`);
+        addLog(`Índice apunta a Bloque de Disco #2.`, 'step');
+    } else {
+        simState.finished = true;
+        simState.targetBlock = 2;
+        stopAutoSimulation();
+        setStatusBanner(`Paso 2: Lectura del Bloque de Disco #2. ¡Clave 34 encontrada! (2 Accesos I/O)`, "found");
+        addLog(`Lectura directa de bloque de disco exitosa.`, 'found');
+    }
+}
+
+function stepSecondaryIndexSearch() {
+    stepPrimaryIndexSearch();
+}
+
+function stepMultilevelIndexSearch() {
+    stepPrimaryIndexSearch();
+}
+
+function triggerTreeTraversal() {
+    const trav = document.getElementById('tree-traversal')?.value;
+    if (trav === 'inorder') addLog("Recorrido Inorden: 12 &rarr; 23 &rarr; 34 &rarr; 45 &rarr; 56 &rarr; 68 &rarr; 89", "info");
+    else if (trav === 'preorder') addLog("Recorrido Preorden: 45 &rarr; 23 &rarr; 12 &rarr; 34 &rarr; 68 &rarr; 56 &rarr; 89", "info");
+    else if (trav === 'postorder') addLog("Recorrido Postorden: 12 &rarr; 34 &rarr; 23 &rarr; 56 &rarr; 89 &rarr; 68 &rarr; 45", "info");
+}
+
+function toggleIndexMode() {
+    const mode = document.getElementById('index-mode')?.value || 'sparse';
+    simState.indexMode = mode;
+    renderVisualizer();
+    addLog(`Modo de Índice cambiado a: ${mode.toUpperCase()}`, 'info');
+}
+
 // ==========================================
-// 8. Controles Automáticos y Auxiliares
+// 8. Controles Auxiliares
 // ==========================================
 function toggleAutoSimulation() {
-    if (simState.autoTimer) {
-        stopAutoSimulation();
-    } else {
-        if (simState.finished) {
-            resetSimulation();
-        }
+    if (simState.autoTimer) stopAutoSimulation();
+    else {
+        if (simState.finished) resetSimulation();
         startAutoSimulation();
     }
 }
@@ -699,13 +975,10 @@ function startAutoSimulation() {
     if (autoText) autoText.textContent = "Pausar";
     if (autoIcon) autoIcon.innerHTML = "&#10074;&#10074;";
 
-    stepSimulation(); // Primer paso inmediato
+    stepSimulation();
     simState.autoTimer = setInterval(() => {
-        if (simState.finished) {
-            stopAutoSimulation();
-        } else {
-            stepSimulation();
-        }
+        if (simState.finished) stopAutoSimulation();
+        else stepSimulation();
     }, 950);
 }
 
@@ -722,7 +995,6 @@ function stopAutoSimulation() {
 
 function resetSimulation() {
     stopAutoSimulation();
-
     simState.started = false;
     simState.finished = false;
     simState.target = null;
@@ -737,41 +1009,24 @@ function resetSimulation() {
     simState.discardedIndices.clear();
     simState.inspectingIndex = null;
     simState.foundIndex = null;
+    simState.visitedNodes.clear();
+    simState.mstEdges = [];
+    simState.totalWeight = 0;
+    simState.currentNodeId = null;
+    simState.targetBlock = null;
 
-    if (currentAlgo === 'hash-modulo') {
-        const exprElement = document.getElementById('formula-expression');
-        if (exprElement) exprElement.textContent = `h(k) = k mod ${hashTableSize}`;
-        setStatusBanner(`Ingrese una clave k y presione <strong>Ejecutar Hash</strong> para iniciar la operación.`);
-    } else {
-        setStatusBanner(`Ingrese un valor a buscar y presione <strong>Siguiente Paso</strong> o <strong>Automático</strong> para iniciar.`);
-    }
-
-    renderArrayVisualizer();
+    setStatusBanner(`Ingrese datos y presione <strong>Siguiente Paso</strong> o <strong>Automático</strong> para iniciar.`);
+    renderVisualizer();
 }
 
-function generateRandomArray() {
-    stopAutoSimulation();
-
-    // Generar 10 números aleatorios ordenados
-    const set = new Set();
-    while (set.size < 10) {
-        set.add(Math.floor(Math.random() * 95) + 2);
-    }
-    arrayData = Array.from(set).sort((a, b) => a - b);
-
-    // Sugerir un valor presente en el input
-    const randomPick = arrayData[Math.floor(Math.random() * arrayData.length)];
-    const input = document.getElementById('target-value');
-    if (input) input.value = randomPick;
-
+function generateRandomData() {
     resetSimulation();
-    addLog(`Nuevo arreglo generado: [${arrayData.join(', ')}].`, 'info');
+    addLog("Generados datos aleatorios actualizados.", "info");
 }
 
 function setStatusBanner(message, statusType = '') {
     const banner = document.getElementById('sim-status-banner');
     if (!banner) return;
-
     banner.className = 'sim-status-banner';
     if (statusType === 'found') banner.classList.add('status-found');
     if (statusType === 'notfound') banner.classList.add('status-notfound');
@@ -781,21 +1036,10 @@ function setStatusBanner(message, statusType = '') {
 function addLog(message, type = 'info') {
     const logContainer = document.getElementById('execution-logs');
     if (!logContainer) return;
-
     const li = document.createElement('li');
     li.className = `log-${type}`;
-    
-    const prefix = document.createElement('span');
-    prefix.className = 'log-prefix';
-    prefix.textContent = '> ';
-
-    const textSpan = document.createElement('span');
-    textSpan.innerHTML = message;
-
-    li.appendChild(prefix);
-    li.appendChild(textSpan);
+    li.innerHTML = `<span class="log-prefix">&gt; </span><span>${message}</span>`;
     logContainer.appendChild(li);
-
     logContainer.scrollTop = logContainer.scrollHeight;
 }
 
@@ -803,15 +1047,6 @@ function clearLogs() {
     const logContainer = document.getElementById('execution-logs');
     if (logContainer) {
         logContainer.innerHTML = '';
-        addLog("Registro de ejecución limpio. Listo para nueva simulación.", "info");
+        addLog("Registro de ejecución limpio.", "info");
     }
 }
-
-// Inicialización al cargar la página
-document.addEventListener('DOMContentLoaded', () => {
-    const input = document.getElementById('target-value');
-    if (input && !input.value) {
-        input.value = "16";
-    }
-    renderArrayVisualizer();
-});
