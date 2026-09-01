@@ -2,33 +2,6 @@
 // LÓGICA DE FUNCIONES HASH Y COLISIONES
 // ==========================================
 
-function stepHashSearch() {
-    if (simState.subPhase === 'calc_hash') {
-        simState.stepCount = 1;
-        const n = arrayData.length;
-        simState.hashIndex = Math.abs(simState.target) % n;
-        simState.inspectingIndex = simState.hashIndex;
-
-        setStatusBanner(`Paso 1: Calculando dirección hash: h(${simState.target}) = ${simState.target} % ${n} = <strong>Posición [${simState.hashIndex}]</strong>.`);
-        addLog(`Cálculo hash: h(${simState.target}) = ${simState.target} % ${n} = ${simState.hashIndex}. Accediendo al índice ${simState.hashIndex}.`, 'step');
-        simState.subPhase = 'check_bucket';
-    } else if (simState.subPhase === 'check_bucket') {
-        const val = arrayData[simState.hashIndex];
-        simState.finished = true;
-        stopAutoSimulation();
-
-        if (val === simState.target) {
-            simState.foundIndex = simState.hashIndex;
-            setStatusBanner(`¡Éxito O(1)! Clave encontrada directamente en <strong>[${simState.hashIndex}]</strong>.`, "found");
-            addLog(`¡Coincidencia directa! arr[${simState.hashIndex}] == ${simState.target}.`, 'found');
-        } else {
-            arrayData.forEach((_, i) => { if (i !== simState.hashIndex) simState.discardedIndices.add(i); });
-            setStatusBanner(`En la cubeta [${simState.hashIndex}] se encuentra <strong>${val}</strong> (No coincide).`, "notfound");
-            addLog(`Colisión detectada o clave no presente en [${simState.hashIndex}].`, 'notfound');
-        }
-    }
-}
-
 function stepHashModulo() {
     const actionSelect = document.getElementById('hash-action');
     const strategySelect = document.getElementById('collision-strategy');
@@ -131,6 +104,172 @@ function stepHashCuadrado() {
 
         setStatusBanner(`Paso 1: h(<strong>${k}</strong>) = <strong>Cubeta [${simState.hashIndex}]</strong>.`);
         addLog(`Paso 1: Cálculo Cuadrado -> ${k}^2 = ${kSquared}. Dígito central = ${simState.hashIndex}.`, 'step');
+        simState.subPhase = 'execute_action';
+
+    } else if (simState.subPhase === 'execute_action' || simState.subPhase === 'resolve_linear') {
+        if (simState.subPhase === 'resolve_linear') {
+            simState.hashIndex = (simState.originalHash + simState.probeCount) % n;
+            simState.inspectingIndex = simState.hashIndex;
+            simState.collision = false; 
+        }
+
+        const hIdx = simState.hashIndex;
+        const currentVal = hashTableData[hIdx];
+
+        if (simState.probeCount >= n) {
+            simState.finished = true;
+            stopAutoSimulation();
+            setStatusBanner(`<strong>Tabla Llena:</strong> No hay espacios disponibles.`, "notfound");
+            return;
+        }
+
+        const isEmpty = currentVal === null;
+        const isMatch = currentVal === k || (typeof currentVal === 'string' && currentVal.includes(k.toString()));
+
+        if (action === 'insert') {
+            if (isEmpty || isMatch) {
+                hashTableData[hIdx] = k;
+                simState.insertedIndex = hIdx;
+                simState.finished = true;
+                stopAutoSimulation();
+                setStatusBanner(`¡Éxito! Clave insertada en <strong>[${hIdx}]</strong>.`, "found");
+            } else handleCollision(hIdx, currentVal, strategy, k, action);
+        } else if (action === 'search') {
+            if (isMatch) {
+                simState.foundIndex = hIdx;
+                simState.finished = true;
+                stopAutoSimulation();
+                setStatusBanner(`¡Éxito! Clave encontrada en <strong>[${hIdx}]</strong>.`, "found");
+            } else if (isEmpty && strategy !== 'encadenamiento') {
+                simState.finished = true;
+                stopAutoSimulation();
+                setStatusBanner(`Celda vacía. La clave no existe.`, "notfound");
+            } else handleCollision(hIdx, currentVal, strategy, k, action);
+        } else if (action === 'delete') {
+            if (isMatch) {
+                hashTableData[hIdx] = null;
+                simState.finished = true;
+                stopAutoSimulation();
+                setStatusBanner(`¡Éxito! Clave eliminada.`, "found");
+            } else handleCollision(hIdx, currentVal, strategy, k, action);
+        }
+    }
+}
+
+function stepHashPlegamiento() {
+    const actionSelect = document.getElementById('hash-action');
+    const strategySelect = document.getElementById('collision-strategy');
+    const action = actionSelect ? actionSelect.value : 'insert';
+    const strategy = strategySelect ? strategySelect.value : 'detener';
+    const k = simState.target;
+    const n = hashTableSize;
+
+    if (simState.subPhase === 'calc_hash') {
+        simState.stepCount = 1;
+        
+        const strK = Math.abs(k).toString();
+        let sum = 0;
+        let parts = [];
+        for(let i=0; i<strK.length; i+=2) {
+            let part = strK.substring(i, i+2);
+            sum += parseInt(part, 10);
+            parts.push(part);
+        }
+        
+        simState.originalHash = sum % n;
+        simState.hashIndex = simState.originalHash;
+        simState.inspectingIndex = simState.hashIndex;
+        simState.probeCount = 0;
+
+        const exprElement = document.getElementById('formula-expression');
+        if (exprElement) {
+            exprElement.innerHTML = `h(${k}) &rarr; ${parts.join(' + ')} = ${sum} &rarr; ${sum} mod ${n} = <strong>${simState.hashIndex}</strong>`;
+        }
+
+        setStatusBanner(`Paso 1: h(<strong>${k}</strong>) = <strong>Cubeta [${simState.hashIndex}]</strong>.`);
+        addLog(`Paso 1: Cálculo Plegamiento -> Suma(${parts.join(', ')}) = ${sum}. Índice = ${simState.hashIndex}.`, 'step');
+        simState.subPhase = 'execute_action';
+
+    } else if (simState.subPhase === 'execute_action' || simState.subPhase === 'resolve_linear') {
+        if (simState.subPhase === 'resolve_linear') {
+            simState.hashIndex = (simState.originalHash + simState.probeCount) % n;
+            simState.inspectingIndex = simState.hashIndex;
+            simState.collision = false; 
+        }
+
+        const hIdx = simState.hashIndex;
+        const currentVal = hashTableData[hIdx];
+
+        if (simState.probeCount >= n) {
+            simState.finished = true;
+            stopAutoSimulation();
+            setStatusBanner(`<strong>Tabla Llena:</strong> No hay espacios disponibles.`, "notfound");
+            return;
+        }
+
+        const isEmpty = currentVal === null;
+        const isMatch = currentVal === k || (typeof currentVal === 'string' && currentVal.includes(k.toString()));
+
+        if (action === 'insert') {
+            if (isEmpty || isMatch) {
+                hashTableData[hIdx] = k;
+                simState.insertedIndex = hIdx;
+                simState.finished = true;
+                stopAutoSimulation();
+                setStatusBanner(`¡Éxito! Clave insertada en <strong>[${hIdx}]</strong>.`, "found");
+            } else handleCollision(hIdx, currentVal, strategy, k, action);
+        } else if (action === 'search') {
+            if (isMatch) {
+                simState.foundIndex = hIdx;
+                simState.finished = true;
+                stopAutoSimulation();
+                setStatusBanner(`¡Éxito! Clave encontrada en <strong>[${hIdx}]</strong>.`, "found");
+            } else if (isEmpty && strategy !== 'encadenamiento') {
+                simState.finished = true;
+                stopAutoSimulation();
+                setStatusBanner(`Celda vacía. La clave no existe.`, "notfound");
+            } else handleCollision(hIdx, currentVal, strategy, k, action);
+        } else if (action === 'delete') {
+            if (isMatch) {
+                hashTableData[hIdx] = null;
+                simState.finished = true;
+                stopAutoSimulation();
+                setStatusBanner(`¡Éxito! Clave eliminada.`, "found");
+            } else handleCollision(hIdx, currentVal, strategy, k, action);
+        }
+    }
+}
+
+function stepHashTruncamiento() {
+    const actionSelect = document.getElementById('hash-action');
+    const strategySelect = document.getElementById('collision-strategy');
+    const action = actionSelect ? actionSelect.value : 'insert';
+    const strategy = strategySelect ? strategySelect.value : 'detener';
+    const k = simState.target;
+    const n = hashTableSize;
+
+    if (simState.subPhase === 'calc_hash') {
+        simState.stepCount = 1;
+        
+        const strK = Math.abs(k).toString();
+        let trunc = "";
+        for(let i=0; i<strK.length; i+=2) {
+            trunc += strK[i];
+        }
+        const valTrunc = parseInt(trunc, 10) || 0;
+        
+        simState.originalHash = valTrunc % n;
+        simState.hashIndex = simState.originalHash;
+        simState.inspectingIndex = simState.hashIndex;
+        simState.probeCount = 0;
+
+        const exprElement = document.getElementById('formula-expression');
+        if (exprElement) {
+            exprElement.innerHTML = `h(${k}) &rarr; extrae_impares(${trunc}) &rarr; ${valTrunc} mod ${n} = <strong>${simState.hashIndex}</strong>`;
+        }
+
+        setStatusBanner(`Paso 1: h(<strong>${k}</strong>) = <strong>Cubeta [${simState.hashIndex}]</strong>.`);
+        addLog(`Paso 1: Cálculo Truncamiento -> Extraer impares = ${valTrunc}. Índice = ${simState.hashIndex}.`, 'step');
         simState.subPhase = 'execute_action';
 
     } else if (simState.subPhase === 'execute_action' || simState.subPhase === 'resolve_linear') {

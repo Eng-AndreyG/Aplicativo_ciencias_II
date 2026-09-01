@@ -23,8 +23,10 @@ function showView(viewId) {
 const algorithmsData = {
     secuencial: { titulo: "Búsqueda Secuencial (Lineal)", badge: "Búsqueda Secuencial", tiempo: "O(n)", espacio: "O(1)", descripcion: "Examina secuencialmente cada elemento del arreglo." },
     binaria: { titulo: "Búsqueda Binaria", badge: "Búsqueda Binaria", tiempo: "O(log n)", espacio: "O(1)", descripcion: "Requiere que la colección esté previamente ordenada." },
-    'hash-modulo': { titulo: "Función Hash por Módulo", badge: "Hash Módulo: h(k) = k mod N", tiempo: "O(1) [Promedio]", espacio: "O(N) Tabla Hash", descripcion: "Calcula el índice mediante la fórmula h(k) = k mod N." },
-    'hash-cuadrado': { titulo: "Función Hash por Cuadrado (Centro)", badge: "Hash Cuadrado", tiempo: "O(1) [Promedio]", espacio: "O(N)", descripcion: "Eleva la clave al cuadrado k^2 y extrae los dígitos centrales." }
+    'hash-modulo': { titulo: "Función Hash por Módulo", badge: "Hash Módulo", tiempo: "O(1) [Promedio]", espacio: "O(N)", descripcion: "Calcula el índice mediante la fórmula h(k) = k mod N." },
+    'hash-cuadrado': { titulo: "Función Hash por Cuadrado (Centro)", badge: "Hash Cuadrado", tiempo: "O(1) [Promedio]", espacio: "O(N)", descripcion: "Eleva la clave al cuadrado k^2 y extrae los dígitos centrales." },
+    'hash-plegamiento': { titulo: "Función Hash por Plegamiento", badge: "Hash Plegamiento", tiempo: "O(1) [Promedio]", espacio: "O(N)", descripcion: "Divide la clave en partes de igual longitud, las suma y aplica módulo N." },
+    'hash-truncamiento': { titulo: "Función Hash por Truncamiento", badge: "Hash Truncamiento", tiempo: "O(1) [Promedio]", espacio: "O(N)", descripcion: "Extrae únicamente dígitos en posiciones específicas de la clave y aplica módulo N." }
 };
 
 // ==========================================
@@ -71,14 +73,13 @@ function loadAlgorithm(algoId) {
     const sizeLabel = document.getElementById('size-label');
 
     if (algoId.startsWith('hash')) {
-        // En Hash mostramos la operación y colisión, permitimos definir tamaño de tabla
         if (hashActionContainer) hashActionContainer.style.display = 'flex';
         if (colStrategyContainer) colStrategyContainer.style.display = 'flex'; 
         if (arraySizeContainer) arraySizeContainer.style.display = 'flex'; 
         if (sizeLabel) sizeLabel.textContent = 'Tamaño Tabla:';
         
-        if (arrayInsertContainer) arrayInsertContainer.style.display = 'none'; // El insert se hace desde Operación
-        if (btnRandom) btnRandom.style.display = 'none'; // Desactivamos el Random para Hash
+        if (arrayInsertContainer) arrayInsertContainer.style.display = 'none'; 
+        if (btnRandom) btnRandom.style.display = 'none'; 
         
         if (formulaBox) formulaBox.style.display = 'flex';
         if (inputLabel) inputLabel.textContent = 'Clave (k):';
@@ -88,6 +89,8 @@ function loadAlgorithm(algoId) {
         if (exprElement) {
             if (algoId === 'hash-modulo') exprElement.innerHTML = `h(k) = k mod ${hashTableSize}`;
             else if (algoId === 'hash-cuadrado') exprElement.innerHTML = `h(k) = centro(k<sup>2</sup>)`;
+            else if (algoId === 'hash-plegamiento') exprElement.innerHTML = `h(k) = suma_partes(k) mod ${hashTableSize}`;
+            else if (algoId === 'hash-truncamiento') exprElement.innerHTML = `h(k) = truncar(k) mod ${hashTableSize}`;
         }
         if (targetInput) targetInput.value = ''; 
     } else {
@@ -127,7 +130,6 @@ function renderArrayVisualizer() {
 
     let indicesToShow = new Set();
 
-    // Lógica para mostrar puntos suspensivos si es muy grande (> 12)
     if (n <= 12) {
         for (let i = 0; i < n; i++) indicesToShow.add(i);
     } else {
@@ -232,14 +234,11 @@ function renderArrayVisualizer() {
             const bottomIndicator = document.createElement('div');
             bottomIndicator.className = 'cell-bottom-indicator';
             if (isFound || (isHash && isInserted)) bottomIndicator.classList.add('indicator-found');
-            
             const arrowGlyph = document.createElement('span');
             arrowGlyph.className = 'indicator-arrow';
             arrowGlyph.innerHTML = '&#9650;'; 
-            
             const pill = document.createElement('span');
             pill.className = 'indicator-pill';
-            
             if (isHash) {
                 if (isCollision) pill.innerHTML = `<strong>Colisión</strong> Cubeta [${idx}] = ${val}`;
                 else if (isFound) pill.innerHTML = `<strong>¡Encontrado!</strong> [${idx}] = ${val}`;
@@ -249,7 +248,6 @@ function renderArrayVisualizer() {
                 if (isFound) pill.innerHTML = `<strong>¡Encontrado!</strong> arr[${idx}] = ${val}`;
                 else pill.innerHTML = `Pos: <strong>${idx}</strong> | Val: <strong>${val === null ? '-' : val}</strong>`;
             }
-            
             bottomIndicator.appendChild(arrowGlyph);
             bottomIndicator.appendChild(pill);
             cell.appendChild(bottomIndicator);
@@ -259,7 +257,114 @@ function renderArrayVisualizer() {
 }
 
 // ==========================================
-// 6. Funciones de Control, Animación y Auxiliares
+// 6. Controlador Principal de Simulación
+// ==========================================
+function stepSimulation() {
+    const inputElement = document.getElementById('target-value');
+    if (!inputElement) return;
+
+    if (simState.finished) {
+        stopAutoSimulation();
+        simState.started = false;
+        simState.finished = false;
+        simState.stepCount = 0;
+        
+        simState.hashIndex = null;
+        simState.originalHash = null;
+        simState.probeCount = 0;
+        simState.collision = false;
+        simState.insertedIndex = null;
+        simState.inspectingIndex = null;
+        simState.foundIndex = null;
+        simState.discardedIndices.clear();
+    }
+
+    if (!simState.started) {
+        const rawVal = inputElement.value.trim();
+        if (rawVal === '') {
+            setStatusBanner("Por favor ingresa un número en el campo de texto.", "notfound");
+            return;
+        }
+
+        const targetVal = parseInt(rawVal, 10);
+        if (isNaN(targetVal)) {
+            setStatusBanner("El valor ingresado no es un número válido.", "notfound");
+            return;
+        }
+
+        initSimulationState(targetVal);
+
+        if (currentAlgo === 'binaria') stepBinarySearch();
+        else if (currentAlgo === 'secuencial') stepSequentialSearch();
+        else if (currentAlgo === 'hash-modulo') stepHashModulo();
+        else if (currentAlgo === 'hash-cuadrado') stepHashCuadrado();
+        else if (currentAlgo === 'hash-plegamiento') stepHashPlegamiento();
+        else if (currentAlgo === 'hash-truncamiento') stepHashTruncamiento();
+
+        renderArrayVisualizer();
+        return;
+    }
+
+    if (currentAlgo === 'binaria') stepBinarySearch();
+    else if (currentAlgo === 'secuencial') stepSequentialSearch();
+    else if (currentAlgo === 'hash-modulo') stepHashModulo();
+    else if (currentAlgo === 'hash-cuadrado') stepHashCuadrado();
+    else if (currentAlgo === 'hash-plegamiento') stepHashPlegamiento();
+    else if (currentAlgo === 'hash-truncamiento') stepHashTruncamiento();
+
+    renderArrayVisualizer();
+}
+
+function initSimulationState(targetVal) {
+    simState.started = true;
+    simState.finished = false;
+    simState.target = targetVal;
+    simState.stepCount = 0;
+    simState.discardedIndices.clear();
+    simState.foundIndex = null;
+    simState.insertedIndex = null;
+    simState.collision = false;
+    simState.inspectingIndex = null;
+
+    if (currentAlgo === 'binaria') {
+        simState.left = 0;
+        simState.right = arrayData.length - 1;
+        simState.mid = null;
+        simState.subPhase = 'calc_mid';
+        setStatusBanner(`Iniciando Búsqueda Binaria para el valor <strong>${targetVal}</strong>.`);
+        addLog(`Iniciando búsqueda binaria de <strong>${targetVal}</strong>.`, 'step');
+    } else if (currentAlgo === 'secuencial') {
+        simState.currentIndex = 0;
+        setStatusBanner(`Iniciando Búsqueda Secuencial para el valor <strong>${targetVal}</strong> desde la posición 0.`);
+        addLog(`Iniciando búsqueda secuencial de <strong>${targetVal}</strong>.`, 'step');
+    } else if (currentAlgo.startsWith('hash')) { 
+        simState.hashIndex = null;
+        simState.subPhase = 'calc_hash';
+        const actionSelect = document.getElementById('hash-action');
+        const action = actionSelect ? actionSelect.value : 'insert';
+        const actionText = action === 'insert' ? 'Insertar' : (action === 'search' ? 'Buscar' : 'Eliminar');
+        
+        let algoName = 'Módulo';
+        let formulaText = `h(${targetVal}) = ${targetVal} mod ${hashTableSize}`;
+        
+        if (currentAlgo === 'hash-cuadrado') {
+            algoName = 'Centro del Cuadrado';
+            formulaText = `h(${targetVal}) = centro(${targetVal}²)`;
+        } else if (currentAlgo === 'hash-plegamiento') {
+            algoName = 'Plegamiento';
+            formulaText = `h(${targetVal}) = suma_partes(${targetVal}) mod ${hashTableSize}`;
+        } else if (currentAlgo === 'hash-truncamiento') {
+            algoName = 'Truncamiento';
+            formulaText = `h(${targetVal}) = truncar(${targetVal}) mod ${hashTableSize}`;
+        }
+        
+        setStatusBanner(`Iniciando operación Hash (<strong>${actionText}</strong>) para la clave <strong>${targetVal}</strong>. Aplicando ${formulaText}.`);
+        addLog(`Operación Hash ${algoName} [<strong>${actionText}</strong>]: Clave k = ${targetVal}.`, 'step');
+    }
+}
+
+// ==========================================
+// 7. Funciones de Interfaz y Auxiliares
 // ==========================================
 function setControlsDisabled(disabled) {
     const controls = document.querySelectorAll('.sim-controls button, .sim-controls input, .sim-controls select');
@@ -414,6 +519,8 @@ function resetSimulation() {
         if (exprElement) {
             if (currentAlgo === 'hash-modulo') exprElement.innerHTML = `h(k) = k mod ${hashTableSize}`;
             else if (currentAlgo === 'hash-cuadrado') exprElement.innerHTML = `h(k) = centro(k<sup>2</sup>)`;
+            else if (currentAlgo === 'hash-plegamiento') exprElement.innerHTML = `h(k) = suma_partes(k) mod ${hashTableSize}`;
+            else if (currentAlgo === 'hash-truncamiento') exprElement.innerHTML = `h(k) = truncar(k) mod ${hashTableSize}`;
         }
         setStatusBanner(`Seleccione la <strong>Operación</strong>, ingrese la clave y presione <strong>Siguiente Paso</strong>.`);
     } else {

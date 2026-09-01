@@ -28,6 +28,8 @@
                             <ul>
                                 <li><a href="#" onclick="loadAlgorithm('hash-modulo')">Función Hash: Módulo y Colisiones</a></li>
                                 <li><a href="#" onclick="loadAlgorithm('hash-cuadrado')">Función Hash: Centro del Cuadrado</a></li>
+                                <li><a href="#" onclick="loadAlgorithm('hash-plegamiento')">Función Hash: Plegamiento</a></li>
+                                <li><a href="#" onclick="loadAlgorithm('hash-truncamiento')">Función Hash: Truncamiento</a></li>
                             </ul>
                         </div>
                         <div class="subgroup">
@@ -70,10 +72,6 @@
                         </div>
                         
                         <div class="sim-controls">
-                            <!-- ========================================== -->
-                            <!-- ZONA 1: CONFIGURACIÓN DE LA ESTRUCTURA     -->
-                            <!-- ========================================== -->
-                            
                             <div class="input-wrapper" id="collision-strategy-container" style="display: none;">
                                 <label for="collision-strategy" class="input-label">Colisión:</label>
                                 <select id="collision-strategy" class="input-select">
@@ -99,14 +97,7 @@
                                 <span>&#127922; Nuevo</span>
                             </button>
 
-                            <!-- ========================================== -->
-                            <!-- SEPARADOR VISUAL HORIZONTAL                -->
-                            <!-- ========================================== -->
                             <div style="width: 100%; height: 1.5px; background-color: var(--border-color); margin: 4px 0; border-radius: 2px;"></div>
-
-                            <!-- ========================================== -->
-                            <!-- ZONA 2: EJECUCIÓN Y USO DE LA ESTRUCTURA   -->
-                            <!-- ========================================== -->
                             
                             <div class="input-wrapper" id="hash-action-container" style="display: none;">
                                 <label for="hash-action" class="input-label">Operación:</label>
@@ -133,7 +124,6 @@
                             </button>
                         </div>
 
-                        <!-- Banners y Visualizador -->
                         <div class="sim-status-banner" id="sim-status-banner">
                             Ingrese un valor a buscar y presione <strong>Siguiente Paso</strong>.
                         </div>
@@ -177,8 +167,8 @@
         </main>
     </div>
     
-    <script src="app.js?v=9"></script>
-    <script src="busquedas.js?v=9"></script>
-    <script src="hash.js?v=9"></script>
+    <script src="app.js?v=10"></script>
+    <script src="busquedas.js?v=10"></script>
+    <script src="hash.js?v=10"></script>
 </body>
 </html>
