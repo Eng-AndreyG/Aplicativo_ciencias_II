@@ -876,3 +876,138 @@ h3 {
     color: #C62828;
     border: 1px solid #EF5350;
 }
+/* ==========================================
+   ESTILOS PARA ÁRBOLES Y TRIES (NUEVO)
+   ========================================== */
+.tree-visualizer-wrapper {
+    background-color: #FFFBF6;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    padding: 30px 10px 40px;
+    position: relative;
+    overflow-x: auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 250px;
+}
+
+.tree ul {
+    padding-top: 20px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    transition: all 0.5s;
+    padding-left: 0;
+}
+
+.tree li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    list-style-type: none;
+    position: relative;
+    padding: 20px 8px 0 8px;
+    transition: all 0.5s;
+}
+
+/* Dibujando las líneas horizontales de rama */
+.tree li::before, .tree li::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 50%;
+    border-top: 2px solid var(--border-color);
+    width: 50%; height: 20px;
+    z-index: 1;
+}
+.tree li::after {
+    right: auto; left: 50%;
+    border-left: 2px solid var(--border-color);
+}
+.tree li:only-child::after, .tree li:only-child::before {
+    display: none;
+}
+.tree li:only-child { padding-top: 0; }
+.tree li:first-child::before, .tree li:last-child::after {
+    border: 0 none;
+}
+.tree li:last-child::before {
+    border-right: 2px solid var(--border-color);
+    border-radius: 0 5px 0 0;
+}
+.tree li:first-child::after {
+    border-radius: 5px 0 0 0;
+}
+
+/* Dibujando el tallo hacia el padre */
+.tree ul ul::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    border-left: 2px solid var(--border-color);
+    width: 0; height: 20px;
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+/* Cajas de Nodos del Árbol */
+.tree-node {
+    border: 1.5px solid var(--border-color);
+    background-color: #FFFFFF;
+    color: var(--text-primary);
+    padding: 8px 16px;
+    border-radius: 12px;
+    display: inline-block;
+    font-weight: 800;
+    font-size: 1.15rem;
+    box-shadow: 0 3px 8px rgba(180, 130, 90, 0.05);
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s;
+    min-width: 45px;
+    text-transform: uppercase;
+}
+
+/* Estados Dinámicos del Árbol */
+.tree-node.node-active {
+    border-color: var(--accent-peach);
+    background-color: #FFEFE6;
+    box-shadow: 0 0 0 4px rgba(255, 185, 148, 0.4);
+    transform: translateY(-3px) scale(1.05);
+    color: var(--accent-dark-peach);
+}
+
+.tree-node.node-found {
+    border-color: #4CAF50;
+    background-color: #E8F5E9;
+    color: #2E7D32;
+    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.3);
+    transform: translateY(-3px) scale(1.05);
+}
+
+.tree-node .node-badge {
+    display: block;
+    font-size: 0.65rem;
+    color: #81C784;
+    margin-top: 3px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+/* ==========================================
+   ETIQUETAS PARA LAS RAMAS DE LOS ÁRBOLES
+   ========================================== */
+.edge-label {
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #FFFBF6; /* Coincide con el fondo del contenedor para tapar la línea */
+    padding: 0 5px;
+    font-size: 0.8rem;
+    font-family: 'Consolas', monospace;
+    font-weight: 800;
+    color: var(--accent-dark-peach);
+    z-index: 5;
+    border-radius: 4px;
+}
