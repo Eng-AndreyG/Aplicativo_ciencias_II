@@ -365,17 +365,19 @@ function loadAlgorithm(algoId) {
     const inputWrapper = document.getElementById('main-input-wrapper');
     const inputLabel = document.getElementById('input-data-label');
     const targetInput = document.getElementById('target-value');
+    const keySizeContainer = document.getElementById('key-size-container');
 
     if (hashAction) hashAction.style.display = algoId === 'hash-modulo' ? 'flex' : 'none';
     if (treeTraversal) treeTraversal.style.display = (algoId === 'bst' || algoId === 'arbol-avl') ? 'flex' : 'none';
     if (indexMode) indexMode.style.display = algoId === 'indice-primario' ? 'flex' : 'none';
-    if (formulaBox) formulaBox.style.display = (algoId === 'hash-modulo' || algoId === 'calculadora-disco') ? 'flex' : 'none';
+    if (formulaBox) formulaBox.style.display = (algoId === 'hash-modulo' || algoId === 'hash-cuadrado' || algoId === 'calculadora-disco') ? 'flex' : 'none';
     if (inputWrapper) inputWrapper.style.display = (data.type === 'calculator' || data.type === 'graph') ? 'none' : 'flex';
+    if (keySizeContainer) keySizeContainer.style.display = (algoId === 'hash-cuadrado' || algoId === 'hash-modulo') ? 'flex' : 'none';
 
     if (inputLabel) {
-        if (algoId === 'hash-modulo') inputLabel.textContent = 'Clave (k):';
+        if (algoId === 'hash-modulo' || algoId === 'hash-cuadrado') inputLabel.textContent = 'Clave (k):';
         else if (algoId === 'trie') inputLabel.textContent = 'Palabra/Clave:';
-        else inputLabel.textContent = 'Buscar valor:';
+        else inputLabel.textContent = 'Buscar clave:';
     }
 
     if (targetInput && data.type !== 'calculator') {
@@ -763,7 +765,7 @@ function initSimulationState(targetVal) {
     } else if (currentAlgo === 'mst-prim') {
         simState.visitedNodes.add('A');
     }
-    setStatusBanner(`Iniciando simulación para el objetivo: <strong>${targetVal}</strong>.`);
+    setStatusBanner(`Iniciando simulación para la clave objetivo: <strong>${targetVal}</strong>.`);
 }
 
 function stepBinarySearch() {
@@ -779,7 +781,7 @@ function stepBinarySearch() {
         simState.mid = Math.floor((simState.left + simState.right) / 2);
         simState.inspectingIndex = simState.mid;
         const midVal = arrayData[simState.mid];
-        setStatusBanner(`Paso ${simState.stepCount}: Rango [${simState.left}..${simState.right}] -> Medio = ${simState.mid} (Valor: ${midVal}).`);
+        setStatusBanner(`Paso ${simState.stepCount}: Rango [${simState.left}..${simState.right}] → Medio = ${simState.mid} (Clave: ${midVal}).`);
         addLog(`Paso ${simState.stepCount}: Rango [${simState.left}..${simState.right}]. Medio = arr[${simState.mid}] = ${midVal}.`, 'step');
         simState.subPhase = 'compare';
     } else {
@@ -788,8 +790,8 @@ function stepBinarySearch() {
             simState.finished = true;
             simState.foundIndex = simState.mid;
             stopAutoSimulation();
-            setStatusBanner(`¡Éxito! Encontrado en posición [${simState.mid}].`, "found");
-            addLog(`¡Coincidencia encontrada en posición [${simState.mid}]!`, 'found');
+            setStatusBanner(`¡Éxito! Clave encontrada en posición [${simState.mid}].`, "found");
+            addLog(`¡Clave encontrada en posición [${simState.mid}]!`, 'found');
         } else if (midVal < simState.target) {
             for (let i = simState.left; i <= simState.mid; i++) simState.discardedIndices.add(i);
             simState.left = simState.mid + 1;
@@ -806,7 +808,8 @@ function stepSequentialSearch() {
     if (simState.currentIndex >= arrayData.length) {
         simState.finished = true;
         stopAutoSimulation();
-        setStatusBanner(`Fin del arreglo. No encontrado.`, "notfound");
+        setStatusBanner(`Fin del arreglo. Clave no encontrada.`, "notfound");
+        addLog(`Se recorrieron todas las posiciones [0..${arrayData.length - 1}]. Clave ${simState.target} no encontrada.`, 'notfound');
         return;
     }
 
@@ -815,13 +818,24 @@ function stepSequentialSearch() {
     const val = arrayData[idx];
     simState.inspectingIndex = idx;
 
+    setStatusBanner(`Paso ${simState.stepCount}: Recorriendo posición [${idx}] de [0..${arrayData.length - 1}]. Clave actual: ${val}.`);
+    addLog(`Paso ${simState.stepCount}: Comparando arr[${idx}] = ${val} con clave buscada ${simState.target}.`, 'step');
+
     if (val === simState.target) {
         simState.finished = true;
         simState.foundIndex = idx;
         stopAutoSimulation();
-        setStatusBanner(`¡Encontrado en el índice [${idx}]!`, "found");
-        addLog(`Encontrado arr[${idx}] == ${val}`, 'found');
+        setStatusBanner(`¡Clave encontrada en posición [${idx}]! Recorrido desde [0] hasta [${idx}].`, "found");
+        addLog(`¡Encontrado! arr[${idx}] == ${val}. Se revisaron ${idx + 1} posiciones [0..${idx}].`, 'found');
+    } else if (val > simState.target) {
+        // Parada temprana: arreglo ordenado, si arr[idx] > objetivo, ya no puede estar
+        simState.finished = true;
+        simState.discardedIndices.add(idx);
+        stopAutoSimulation();
+        setStatusBanner(`Parada temprana en posición [${idx}]: arr[${idx}] = ${val} > ${simState.target}. Clave no puede estar en el arreglo (ordenado).`, "notfound");
+        addLog(`Parada temprana: arr[${idx}] = ${val} > ${simState.target}. En arreglo ordenado, la clave ya no puede existir.`, 'notfound');
     } else {
+        addLog(`arr[${idx}] = ${val} ≠ ${simState.target}. Avanzando a siguiente posición.`, 'compare');
         simState.discardedIndices.add(idx);
         simState.currentIndex++;
     }
@@ -830,15 +844,46 @@ function stepSequentialSearch() {
 function stepHashModulo() {
     const k = simState.target;
     const n = hashTableSize;
+    const action = document.getElementById('hash-action')?.value || 'insert';
     simState.hashIndex = Math.abs(k) % n;
     simState.inspectingIndex = simState.hashIndex;
     simState.finished = true;
     stopAutoSimulation();
 
-    hashTableData[simState.hashIndex] = k;
-    simState.insertedIndex = simState.hashIndex;
-    setStatusBanner(`h(${k}) = ${k} mod ${n} = Cubeta [${simState.hashIndex}]. Clave almacenada.`, "found");
-    addLog(`Operación Hash Módulo completada en cubeta [${simState.hashIndex}].`, 'found');
+    if (action === 'insert') {
+        // Insertar clave
+        if (hashTableData[simState.hashIndex] !== null && hashTableData[simState.hashIndex] !== k) {
+            simState.collision = true;
+            setStatusBanner(`¡Colisión! h(${k}) = ${k} mod ${n} = Cubeta [${simState.hashIndex}] ya ocupada por ${hashTableData[simState.hashIndex]}.`, "notfound");
+            addLog(`Colisión en cubeta [${simState.hashIndex}]: ya contiene ${hashTableData[simState.hashIndex]}.`, 'discard');
+        } else {
+            hashTableData[simState.hashIndex] = k;
+            simState.insertedIndex = simState.hashIndex;
+            setStatusBanner(`h(${k}) = ${k} mod ${n} = Cubeta [${simState.hashIndex}]. Clave almacenada.`, "found");
+            addLog(`Inserción: Clave ${k} almacenada en cubeta [${simState.hashIndex}].`, 'found');
+        }
+    } else if (action === 'search') {
+        // Buscar clave
+        if (hashTableData[simState.hashIndex] === k) {
+            simState.foundIndex = simState.hashIndex;
+            setStatusBanner(`h(${k}) = ${k} mod ${n} = Cubeta [${simState.hashIndex}]. ¡Clave ${k} encontrada!`, "found");
+            addLog(`Búsqueda: Clave ${k} encontrada en cubeta [${simState.hashIndex}].`, 'found');
+        } else {
+            setStatusBanner(`h(${k}) = ${k} mod ${n} = Cubeta [${simState.hashIndex}]. Clave ${k} NO encontrada (cubeta contiene: ${hashTableData[simState.hashIndex] === null ? 'vacía' : hashTableData[simState.hashIndex]}).`, "notfound");
+            addLog(`Búsqueda: Clave ${k} no encontrada en cubeta [${simState.hashIndex}].`, 'notfound');
+        }
+    } else if (action === 'delete') {
+        // Eliminar clave
+        if (hashTableData[simState.hashIndex] === k) {
+            hashTableData[simState.hashIndex] = null;
+            simState.foundIndex = simState.hashIndex;
+            setStatusBanner(`h(${k}) = ${k} mod ${n} = Cubeta [${simState.hashIndex}]. Clave ${k} eliminada exitosamente.`, "found");
+            addLog(`Eliminación: Clave ${k} eliminada de cubeta [${simState.hashIndex}]. Cubeta ahora vacía.`, 'found');
+        } else {
+            setStatusBanner(`h(${k}) = ${k} mod ${n} = Cubeta [${simState.hashIndex}]. No se puede eliminar: clave ${k} no encontrada (cubeta contiene: ${hashTableData[simState.hashIndex] === null ? 'vacía' : hashTableData[simState.hashIndex]}).`, "notfound");
+            addLog(`Eliminación fallida: Clave ${k} no está en cubeta [${simState.hashIndex}].`, 'notfound');
+        }
+    }
 }
 
 function stepBSTSearch() {
@@ -1015,7 +1060,7 @@ function resetSimulation() {
     simState.currentNodeId = null;
     simState.targetBlock = null;
 
-    setStatusBanner(`Ingrese datos y presione <strong>Siguiente Paso</strong> o <strong>Automático</strong> para iniciar.`);
+    setStatusBanner(`Ingrese una clave y presione <strong>Siguiente Paso</strong> o <strong>Automático</strong> para iniciar.`);
     renderVisualizer();
 }
 

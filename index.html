@@ -180,9 +180,15 @@
                                 </select>
                             </div>
 
+                            <!-- Campo Tamaño de Clave (para Hash Centro del Cuadrado) -->
+                            <div class="input-wrapper" id="key-size-container" style="display: none;">
+                                <label for="key-size" class="input-label">Tamaño clave:</label>
+                                <input type="number" id="key-size" class="input-data" placeholder="Ej: 4" min="1" max="10" value="4" style="width: 75px;">
+                            </div>
+
                             <!-- Campo de Entrada Principal -->
                             <div class="input-wrapper" id="main-input-wrapper">
-                                <label for="target-value" id="input-data-label" class="input-label">Buscar valor:</label>
+                                <label for="target-value" id="input-data-label" class="input-label">Buscar clave:</label>
                                 <input type="number" id="target-value" class="input-data" placeholder="Ej: 16" min="0">
                             </div>
 
@@ -203,7 +209,7 @@
 
                         <!-- Banner de Estado de la Simulación -->
                         <div class="sim-status-banner" id="sim-status-banner">
-                            Ingrese un valor a buscar y presione <strong>Siguiente Paso</strong> o <strong>Automático</strong> para iniciar el rastreo.
+                            Ingrese una clave a buscar y presione <strong>Siguiente Paso</strong> o <strong>Automático</strong> para iniciar el rastreo.
                         </div>
 
                         <!-- Banner con la Fórmula Matemática Dinámica -->
