@@ -81,13 +81,21 @@
                                 <select id="collision-strategy" class="input-select">
                                     <option value="detener">Detener (Sin manejo)</option>
                                     <option value="lineal">Sondeo Lineal</option>
-                                    <option value="encadenamiento">Encadenamiento</option>
+                                    <option value="cuadratica">Sondeo Cuadrático</option>
+                                    <option value="doble">Doble Función Hash</option>
+                                    <option value="anidados">Arreglos Anidados</option>
+                                    <option value="encadenamiento">Listas Enlazadas</option>
                                 </select>
                             </div>
 
                             <div class="input-wrapper" id="array-size-container">
-                                <label for="array-size-input" id="size-label" class="input-label">Tamaño:</label>
+                                <label for="array-size-input" id="size-label" class="input-label">Tamaño Estructura:</label>
                                 <input type="number" id="array-size-input" class="input-data" style="width: 80px;" placeholder="Ej: 5" min="1">
+                            </div>
+
+                            <div class="input-wrapper" id="key-size-container">
+                                <label for="key-size-input" class="input-label">Dígitos Clave:</label>
+                                <input type="number" id="key-size-input" class="input-data" style="width: 70px;" placeholder="Ej: 3" value="2" min="1">
                                 <button class="btn-secondary" onclick="createEmptyArray()" title="Crear estructura vacía">Crear</button>
                             </div>
 
@@ -104,17 +112,16 @@
                             <div style="width: 100%; height: 1.5px; background-color: var(--border-color); margin: 4px 0; border-radius: 2px;"></div>
                             
                             <!-- ZONA 2: EJECUCIÓN -->
-                            <div class="input-wrapper" id="hash-action-container" style="display: none;">
-                                <label for="hash-action" class="input-label">Operación:</label>
-                                <select id="hash-action" class="input-select">
-                                    <option value="insert">Insertar Clave</option>
-                                    <option value="search">Buscar Clave</option>
-                                    <option value="delete">Eliminar Clave</option>
+                            <div class="input-wrapper" id="operation-container">
+                                <label for="operation-action" class="input-label">Operación:</label>
+                                <select id="operation-action" class="input-select">
+                                    <option value="search">Buscar Dato</option>
+                                    <option value="delete">Eliminar Dato</option>
                                 </select>
                             </div>
 
                             <div class="input-wrapper">
-                                <label for="target-value" id="input-data-label" class="input-label">Buscar valor:</label>
+                                <label for="target-value" id="input-data-label" class="input-label">Dato:</label>
                                 <input type="text" id="target-value" class="input-data" placeholder="Ej: 16">
                             </div>
                             
@@ -138,12 +145,10 @@
                             <span id="formula-expression" class="formula-expression">h(k) = k mod N</span>
                         </div>
 
-                        <!-- CONTENEDORES DE VISUALIZACIÓN -->
                         <div class="array-visualizer-wrapper" id="array-wrapper">
                             <div class="array-container" id="array-visualizer"></div>
                         </div>
 
-                        <!-- NUEVO: Contenedor para Árboles (Oculto por defecto) -->
                         <div class="tree-visualizer-wrapper" id="tree-wrapper" style="display: none;">
                             <div class="tree-container" id="tree-visualizer"></div>
                         </div>
@@ -178,10 +183,9 @@
         </main>
     </div>
     
-    <!-- Carga de todos los scripts -->
-    <script src="app.js?v=12"></script>
-    <script src="busquedas.js?v=12"></script>
-    <script src="hash.js?v=12"></script>
-    <script src="arboles.js?v=12"></script>
+    <script src="app.js?v=18"></script>
+    <script src="busquedas.js?v=18"></script>
+    <script src="hash.js?v=18"></script>
+    <script src="arboles.js?v=18"></script>
 </body>
 </html>

@@ -27,9 +27,7 @@ const algorithmsData = {
     'hash-cuadrado': { titulo: "Función Hash por Cuadrado (Centro)", badge: "Hash Cuadrado", tiempo: "O(1) [Promedio]", espacio: "O(N)", descripcion: "Eleva la clave al cuadrado k^2 y extrae los dígitos centrales." },
     'hash-plegamiento': { titulo: "Función Hash por Plegamiento", badge: "Hash Plegamiento", tiempo: "O(1) [Promedio]", espacio: "O(N)", descripcion: "Divide la clave en partes, las suma y aplica módulo N." },
     'hash-truncamiento': { titulo: "Función Hash por Truncamiento", badge: "Hash Truncamiento", tiempo: "O(1) [Promedio]", espacio: "O(N)", descripcion: "Extrae dígitos en posiciones específicas y aplica módulo N." },
-    
-    // ÁRBOLES
-    'arbol-digital': { titulo: "Búsqueda en Árboles Digitales", badge: "Árbol Digital", tiempo: "O(K)", espacio: "O(N*K)", descripcion: "Utiliza la representación digital (caracteres) de las claves para ramificar la búsqueda en nodos hijos." },
+    'arbol-digital': { titulo: "Búsqueda en Árboles Digitales", badge: "Árbol Digital", tiempo: "O(K)", espacio: "O(N*K)", descripcion: "Utiliza la representación digital de las claves para ramificar la búsqueda." },
     'trie-residuos': { titulo: "Trie (Por Residuos)", badge: "Trie", tiempo: "O(L)", espacio: "O(N*L)", descripcion: "Estructura de búsqueda basada en la descomposición de la clave en sus prefijos/residuos lógicos." },
     'trie-multiples': { titulo: "Trie de Residuos Múltiples", badge: "Trie Múltiple", tiempo: "O(L/k)", espacio: "O(N*L/k)", descripcion: "Optimización del Trie que evalúa múltiples caracteres simultáneamente por nivel." },
     'huffman': { titulo: "Árbol de Huffman", badge: "Huffman", tiempo: "O(N log N)", espacio: "O(N)", descripcion: "Árbol binario óptimo utilizado para codificación y descompresión de datos." }
@@ -62,6 +60,7 @@ function loadAlgorithm(algoId) {
 
     currentAlgo = algoId;
     const isTree = treeAlgorithms.includes(algoId);
+    const isHash = algoId.startsWith('hash');
 
     document.getElementById('current-algorithm-title').textContent = data.titulo;
     document.getElementById('algo-badge').textContent = data.badge;
@@ -69,64 +68,64 @@ function loadAlgorithm(algoId) {
     document.getElementById('space-complexity').textContent = data.espacio;
     document.getElementById('algorithm-description').textContent = data.descripcion;
 
-    const hashActionContainer = document.getElementById('hash-action-container');
+    const opSelect = document.getElementById('operation-action');
     const colStrategyContainer = document.getElementById('collision-strategy-container');
     const arraySizeContainer = document.getElementById('array-size-container');
     const arrayInsertContainer = document.getElementById('array-insert-container');
+    const keySizeContainer = document.getElementById('key-size-container');
     const formulaBox = document.getElementById('formula-box');
-    const inputLabel = document.getElementById('input-data-label');
-    const btnStepText = document.getElementById('btn-step-text');
     const targetInput = document.getElementById('target-value');
     const insertInput = document.getElementById('array-insert-input');
     const btnRandom = document.getElementById('btn-random');
     const sizeLabel = document.getElementById('size-label');
 
-    // Cambiar tipo de input si es árbol (para permitir texto en Tries)
     if (targetInput) { targetInput.type = isTree ? 'text' : 'number'; targetInput.value = ''; }
     if (insertInput) { insertInput.type = isTree ? 'text' : 'number'; insertInput.value = ''; }
 
-    // Ruteo Visual de la Interfaz
     const arrayWrapper = document.getElementById('array-wrapper');
     const treeWrapper = document.getElementById('tree-wrapper');
 
-    if (algoId.startsWith('hash')) {
+    if (isHash) {
+        opSelect.innerHTML = '<option value="insert">Insertar Clave</option><option value="search">Buscar Clave</option><option value="delete">Eliminar Clave</option>';
+        opSelect.value = 'insert';
+        colStrategyContainer.style.display = 'flex';
+        arraySizeContainer.style.display = 'flex'; sizeLabel.textContent = 'Tamaño Estructura:';
+        if (keySizeContainer) keySizeContainer.style.display = 'flex'; 
+        arrayInsertContainer.style.display = 'none';
+        btnRandom.style.display = 'none';
+        formulaBox.style.display = 'flex';
         arrayWrapper.style.display = 'flex'; treeWrapper.style.display = 'none';
-        if (hashActionContainer) hashActionContainer.style.display = 'flex';
-        if (colStrategyContainer) colStrategyContainer.style.display = 'flex'; 
-        if (arraySizeContainer) arraySizeContainer.style.display = 'flex'; 
-        if (sizeLabel) sizeLabel.textContent = 'Tamaño Tabla:';
-        if (arrayInsertContainer) arrayInsertContainer.style.display = 'none'; 
-        if (btnRandom) btnRandom.style.display = 'none'; 
-        if (formulaBox) formulaBox.style.display = 'flex';
-        if (inputLabel) inputLabel.textContent = 'Clave (k):';
-        if (btnStepText) btnStepText.textContent = 'Siguiente Paso';
-    } else if (isTree) {
-        arrayWrapper.style.display = 'none'; treeWrapper.style.display = 'flex';
-        if (hashActionContainer) hashActionContainer.style.display = 'none';
-        if (colStrategyContainer) colStrategyContainer.style.display = 'none'; 
-        if (arraySizeContainer) arraySizeContainer.style.display = 'none'; // Árboles no requieren tamaño
-        if (arrayInsertContainer) arrayInsertContainer.style.display = 'flex'; 
-        if (btnRandom) btnRandom.style.display = 'none'; 
-        if (formulaBox) formulaBox.style.display = 'none';
-        if (inputLabel) inputLabel.textContent = 'Buscar Palabra:';
-        if (btnStepText) btnStepText.textContent = 'Recorrer Árbol';
+        
+        const exprElement = document.getElementById('formula-expression');
+        if (exprElement) {
+            if (algoId === 'hash-modulo') exprElement.innerHTML = `h(k) = k mod ${hashTableSize}`;
+            else if (algoId === 'hash-cuadrado') exprElement.innerHTML = `h(k) = centro(k<sup>2</sup>)`;
+            else if (algoId === 'hash-plegamiento') exprElement.innerHTML = `h(k) = suma_partes(k) mod ${hashTableSize}`;
+            else if (algoId === 'hash-truncamiento') exprElement.innerHTML = `h(k) = truncar(k) mod ${hashTableSize}`;
+        }
     } else {
-        arrayWrapper.style.display = 'flex'; treeWrapper.style.display = 'none';
-        if (hashActionContainer) hashActionContainer.style.display = 'none';
-        if (colStrategyContainer) colStrategyContainer.style.display = 'none'; 
-        if (arraySizeContainer) arraySizeContainer.style.display = 'flex'; 
-        if (sizeLabel) sizeLabel.textContent = 'Tamaño:';
-        if (arrayInsertContainer) arrayInsertContainer.style.display = 'flex'; 
-        if (btnRandom) btnRandom.style.display = 'inline-flex';
-        if (formulaBox) formulaBox.style.display = 'none';
-        if (inputLabel) inputLabel.textContent = 'Buscar valor:';
-        if (btnStepText) btnStepText.textContent = 'Siguiente Paso';
+        opSelect.innerHTML = '<option value="search">Buscar Dato</option><option value="delete">Eliminar Dato</option>';
+        opSelect.value = 'search';
+        colStrategyContainer.style.display = 'none';
+        formulaBox.style.display = 'none';
+        arrayInsertContainer.style.display = 'flex';
+        
+        if (isTree) {
+            arraySizeContainer.style.display = 'none';
+            if (keySizeContainer) keySizeContainer.style.display = 'none'; 
+            btnRandom.style.display = 'none';
+            arrayWrapper.style.display = 'none'; treeWrapper.style.display = 'flex';
+        } else {
+            arraySizeContainer.style.display = 'flex'; sizeLabel.textContent = 'Tamaño Estructura:';
+            if (keySizeContainer) keySizeContainer.style.display = 'flex'; 
+            btnRandom.style.display = 'inline-flex';
+            arrayWrapper.style.display = 'flex'; treeWrapper.style.display = 'none';
+        }
     }
 
     arrayData = [];
     hashTableData = new Array(hashTableSize).fill(null);
     clearLogs();
-
     resetSimulation();
     addLog(`Algoritmo cargado: <strong>${data.titulo}</strong>.`, 'info');
 }
@@ -208,7 +207,7 @@ function renderArrayVisualizer() {
             } else if (currentAlgo === 'secuencial' && simState.started && !simState.finished) {
                 if (simState.currentIndex === idx) badges.push({ type: 'single', label: `Pos (${idx})` });
             }
-            if (simState.isInserting && simState.inspectingIndex === idx) badges.push({ type: 'single', label: `Moviendo` });
+            if (simState.isInserting && simState.inspectingIndex === idx) badges.push({ type: 'single', label: `Analizando` });
         }
 
         if (badges.length > 0) {
@@ -246,7 +245,7 @@ function renderArrayVisualizer() {
             pill.className = 'indicator-pill';
             
             if (isHash) {
-                if (isCollision) pill.innerHTML = `<strong>Colisión</strong> Cubeta [${idx}] = ${val}`;
+                if (isCollision) pill.innerHTML = `<strong>Colisión</strong> Posición [${idx}] = ${val}`;
                 else if (isFound) pill.innerHTML = `<strong>¡Encontrado!</strong> [${idx}] = ${val}`;
                 else if (isInserted) pill.innerHTML = `<strong>¡Insertado!</strong> h(k) -> [${idx}]`;
                 else pill.innerHTML = `Calculado: <strong>[${idx}]</strong>`;
@@ -290,33 +289,46 @@ function stepSimulation() {
         const isTree = treeAlgorithms.includes(currentAlgo);
         
         if (rawVal === '') {
-            setStatusBanner("Por favor ingresa un dato en el campo de búsqueda.", "notfound");
+            setStatusBanner("Por favor ingresa un dato en el campo de operación.", "notfound");
             return;
         }
 
         let targetVal = rawVal;
+        
         if (!isTree) {
             targetVal = parseInt(rawVal, 10);
             if (isNaN(targetVal)) {
                 setStatusBanner("El valor ingresado debe ser numérico.", "notfound");
                 return;
             }
+            
+            const keySizeInput = document.getElementById('key-size-input');
+            const expectedDigits = keySizeInput && !isNaN(parseInt(keySizeInput.value, 10)) ? parseInt(keySizeInput.value, 10) : 0;
+            
+            if (expectedDigits > 0 && Math.abs(targetVal).toString().length !== expectedDigits) {
+                setStatusBanner(`La clave a procesar debe tener exactamente <strong>${expectedDigits}</strong> dígitos según la configuración.`, "notfound");
+                return;
+            }
         }
 
         initSimulationState(targetVal);
 
-        if (currentAlgo.startsWith('hash')) {
-            startHashOperation();
-        } else if (isTree) {
-            stepTreeSearch(); // Redirige a arboles.js
-        } else {
-            renderArrayVisualizer();
-        }
+        if (currentAlgo === 'hash-modulo') stepHashModulo();
+        else if (currentAlgo === 'hash-cuadrado') stepHashCuadrado();
+        else if (currentAlgo === 'hash-plegamiento') stepHashPlegamiento();
+        else if (currentAlgo === 'hash-truncamiento') stepHashTruncamiento();
+        else if (isTree) stepTreeSearch(); 
+        else renderArrayVisualizer();
+        
         return;
     }
 
     if (currentAlgo === 'binaria') stepBinarySearch();
     else if (currentAlgo === 'secuencial') stepSequentialSearch();
+    else if (currentAlgo === 'hash-modulo') stepHashModulo();
+    else if (currentAlgo === 'hash-cuadrado') stepHashCuadrado();
+    else if (currentAlgo === 'hash-plegamiento') stepHashPlegamiento();
+    else if (currentAlgo === 'hash-truncamiento') stepHashTruncamiento();
     else if (treeAlgorithms.includes(currentAlgo)) stepTreeSearch();
 
     if (!treeAlgorithms.includes(currentAlgo)) renderArrayVisualizer();
@@ -333,23 +345,25 @@ function initSimulationState(targetVal) {
     simState.collision = false;
     simState.inspectingIndex = null;
 
+    const opSelect = document.getElementById('operation-action');
+    const actionText = opSelect && opSelect.value === 'delete' ? 'Eliminar' : 'Buscar';
+
     if (currentAlgo === 'binaria') {
         simState.left = 0; simState.right = arrayData.length - 1; simState.mid = null; simState.subPhase = 'calc_mid';
-        setStatusBanner(`Iniciando Búsqueda Binaria para el valor <strong>${targetVal}</strong>.`);
-        addLog(`Iniciando búsqueda binaria de <strong>${targetVal}</strong>.`, 'step');
+        setStatusBanner(`Iniciando Búsqueda Binaria para la operación <strong>${actionText}</strong> (${targetVal}).`);
+        addLog(`Operación ${actionText} iniciada: objetivo <strong>${targetVal}</strong>.`, 'step');
     } else if (currentAlgo === 'secuencial') {
         simState.currentIndex = 0;
-        setStatusBanner(`Iniciando Búsqueda Secuencial para el valor <strong>${targetVal}</strong>.`);
-        addLog(`Iniciando búsqueda secuencial de <strong>${targetVal}</strong>.`, 'step');
+        setStatusBanner(`Iniciando Búsqueda Secuencial para la operación <strong>${actionText}</strong>.`);
+        addLog(`Operación ${actionText} iniciada: objetivo <strong>${targetVal}</strong>.`, 'step');
     } else if (treeAlgorithms.includes(currentAlgo)) {
         simState.currentIndex = 0;
-        setStatusBanner(`Preparando estructura jerárquica para analizar: <strong>${targetVal}</strong>.`);
+        setStatusBanner(`Preparando estructura jerárquica para la operación: <strong>${actionText}</strong>.`);
     } else if (currentAlgo.startsWith('hash')) { 
         simState.hashIndex = null;
         simState.subPhase = 'calc_hash';
-        const actionSelect = document.getElementById('hash-action');
-        const actionText = actionSelect && actionSelect.value === 'insert' ? 'Insertar' : (actionSelect && actionSelect.value === 'search' ? 'Buscar' : 'Eliminar');
-        setStatusBanner(`Iniciando operación Hash (<strong>${actionText}</strong>) para la clave <strong>${targetVal}</strong>.`);
+        const hashActTxt = opSelect && opSelect.value === 'insert' ? 'Insertar' : actionText;
+        setStatusBanner(`Iniciando operación Hash (<strong>${hashActTxt}</strong>) para la clave <strong>${targetVal}</strong>.`);
         addLog(`Operación Hash solicitada para: Clave k = ${targetVal}.`, 'step');
     }
 }
@@ -376,11 +390,11 @@ function createEmptyArray() {
         hashTableSize = size;
         hashTableData = new Array(hashTableSize).fill(null);
         resetSimulation();
-        addLog(`Se creó una Tabla Hash con ${size} cubetas vacías.`, 'info');
+        addLog(`Se inicializó la estructura Hash con ${size} posiciones vacías.`, 'info');
     } else {
         arrayData = new Array(size).fill(null);
         resetSimulation();
-        addLog(`Se reservó estructura de ${size} nodos/posiciones vacías.`, 'info');
+        addLog(`Se reservó estructura lineal de ${size} posiciones vacías.`, 'info');
     }
 }
 
@@ -394,12 +408,8 @@ function insertSingleData() {
         return;
     }
 
-    // Si es un algoritmo de árbol, delegamos la inserción y terminamos la función de Arrays
     if (treeAlgorithms.includes(currentAlgo)) {
-        if (typeof insertIntoTree === "function") {
-            insertIntoTree(rawVal);
-            inputElement.value = '';
-        }
+        if (typeof insertIntoTree === "function") { insertIntoTree(rawVal); inputElement.value = ''; }
         return;
     }
 
@@ -414,44 +424,46 @@ function insertSingleData() {
         return;
     }
 
+    const keySizeInput = document.getElementById('key-size-input');
+    const expectedDigits = keySizeInput && !isNaN(parseInt(keySizeInput.value, 10)) ? parseInt(keySizeInput.value, 10) : 0;
+    
+    if (expectedDigits > 0 && Math.abs(val).toString().length !== expectedDigits) {
+        setStatusBanner(`La clave ingresada debe tener exactamente <strong>${expectedDigits}</strong> dígitos según la configuración.`, "notfound");
+        return;
+    }
+
     const firstEmptyIdx = arrayData.indexOf(null);
     if (firstEmptyIdx === -1) {
         setStatusBanner("La estructura ya está llena (Overflow).", "notfound");
         return;
     }
 
-    arrayData[firstEmptyIdx] = val;
     inputElement.value = '';
-    
     const targetInput = document.getElementById('target-value');
     if (targetInput) targetInput.value = val;
 
     simState.isInserting = true;
     setControlsDisabled(true);
 
-    let currIdx = firstEmptyIdx;
+    let currIdx = 0;
     simState.inspectingIndex = currIdx;
     renderArrayVisualizer();
+    setStatusBanner(`Buscando posición ordenada para ${val}...`);
 
-    if (currentAlgo === 'binaria') {
-        setStatusBanner(`Insertando ${val}... Ordenando estructura paso a paso.`);
-        const insertInterval = setInterval(() => {
-            if (currIdx > 0 && arrayData[currIdx - 1] !== null && arrayData[currIdx] < arrayData[currIdx - 1]) {
-                const temp = arrayData[currIdx];
-                arrayData[currIdx] = arrayData[currIdx - 1];
-                arrayData[currIdx - 1] = temp;
-                currIdx--;
-                simState.inspectingIndex = currIdx;
-                renderArrayVisualizer();
-            } else {
-                clearInterval(insertInterval);
-                finishInsertion(val, currIdx, "ordenado correctamente");
+    const insertInterval = setInterval(() => {
+        if (currIdx < firstEmptyIdx && arrayData[currIdx] !== null && arrayData[currIdx] < val) {
+            currIdx++;
+            simState.inspectingIndex = currIdx;
+            renderArrayVisualizer();
+        } else {
+            clearInterval(insertInterval);
+            for (let i = firstEmptyIdx; i > currIdx; i--) {
+                arrayData[i] = arrayData[i - 1];
             }
-        }, 600);
-    } else {
-        setStatusBanner(`Asignando nodo/dato ${val}...`);
-        setTimeout(() => { finishInsertion(val, firstEmptyIdx, "asignado"); }, 400);
-    }
+            arrayData[currIdx] = val;
+            finishInsertion(val, currIdx, "insertado y ordenado");
+        }
+    }, 500);
 }
 
 function finishInsertion(val, idx, msg) {
@@ -460,20 +472,34 @@ function finishInsertion(val, idx, msg) {
     setControlsDisabled(false);
     resetSimulation();
     setStatusBanner(`Dato ${val} ${msg}. Listo para continuar.`, "found");
-    addLog(`Dato ${val} asignado a la posición/nodo [${idx}].`, 'info');
+    addLog(`Dato ${val} asignado a la posición [${idx}].`, 'info');
 }
 
 function generateRandomArray() {
     if (simState.isInserting) return;
     stopAutoSimulation();
+    
+    const keySizeInput = document.getElementById('key-size-input');
+    const expectedDigits = keySizeInput && !isNaN(parseInt(keySizeInput.value, 10)) ? parseInt(keySizeInput.value, 10) : 2;
+    
+    const min = expectedDigits === 1 ? 0 : Math.pow(10, expectedDigits - 1);
+    const max = Math.pow(10, expectedDigits) - 1;
+    const maxPossible = max - min + 1;
+    
+    let numElements = 25;
+    if (numElements > maxPossible) numElements = maxPossible;
+
     const set = new Set();
-    while (set.size < 25) set.add(Math.floor(Math.random() * 95) + 2);
+    while (set.size < numElements) {
+        set.add(Math.floor(Math.random() * maxPossible) + min);
+    }
+    
     arrayData = Array.from(set).sort((a, b) => a - b);
     
     const input = document.getElementById('target-value');
     if (input) input.value = arrayData[Math.floor(Math.random() * arrayData.length)];
     resetSimulation();
-    addLog(`Nuevo arreglo aleatorio generado: [${arrayData.length} elementos].`, 'info');
+    addLog(`Nuevo arreglo generado: [${arrayData.length} elementos de ${expectedDigits} dígitos].`, 'info');
 }
 
 function toggleAutoSimulation() {
@@ -531,7 +557,7 @@ function resetSimulation() {
         if (typeof resetTreeState === "function") resetTreeState();
         setStatusBanner(`Ingrese una palabra y presione <strong>Siguiente Paso</strong>.`);
     } else {
-        setStatusBanner(`Ingrese un valor a buscar y presione <strong>Siguiente Paso</strong> o <strong>Automático</strong>.`);
+        setStatusBanner(`Ingrese un valor a procesar y presione <strong>Siguiente Paso</strong> o <strong>Automático</strong>.`);
     }
     
     if (!treeAlgorithms.includes(currentAlgo)) {
