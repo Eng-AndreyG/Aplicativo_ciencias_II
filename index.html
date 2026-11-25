@@ -3,272 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma de Simulación - Ciencias de la Computación II</title>
+    <title>Ciencias de la Computación II — Plataforma de Simulación</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Barra Lateral de Navegación -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>Ciencias de la Computación II</h2>
-                <p class="sidebar-subtitle">Estructuras & Algoritmos</p>
-            </div>
+<div class="app-container">
+    <!-- ============ BARRA LATERAL (generada desde el catálogo de js/core.js) ============ -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Ciencias de la Computación II</h2>
+            <p class="sidebar-subtitle">Universidad Distrital F.J.C. · Ing. de Sistemas</p>
+        </div>
+        <div class="sidebar-search">
+            <input type="search" id="menu-search" placeholder="Buscar tema… (ej. Dijkstra)" autocomplete="off">
+        </div>
+        <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    </aside>
 
-            <nav class="sidebar-nav">
-                <!-- Módulo 1 -->
-                <div class="nav-module">
-                    <button class="accordion active">Módulo 1: Búsquedas & Hashing</button>
-                    <div class="panel" style="display: block;">
-                        <div class="subgroup">
-                            <h4>Subgrupo A: Búsquedas Tradicionales</h4>
-                            <ul>
-                                <li><a href="#" onclick="loadAlgorithm('secuencial')">Búsqueda Secuencial</a></li>
-                                <li><a href="#" onclick="loadAlgorithm('binaria')">Búsqueda Binaria</a></li>
-                                <li><a href="#" onclick="loadAlgorithm('transformacion')">Transformación de Claves</a></li>
-                            </ul>
-                        </div>
-                        <div class="subgroup">
-                            <h4>Subgrupo B: Hashing & Colisiones</h4>
-                            <ul>
-                                <li><a href="#" onclick="loadAlgorithm('hash-modulo')">Hash: Módulo (División)</a></li>
-                                <li><a href="#" onclick="loadAlgorithm('hash-cuadrado')">Hash: Centro del Cuadrado</a></li>
-                                <li><a href="#" onclick="loadAlgorithm('hash-reasignacion')">Colisiones: Reasignación</a></li>
-                                <li><a href="#" onclick="loadAlgorithm('hash-encadenamiento')">Colisiones: Encadenamiento</a></li>
-                            </ul>
-                        </div>
-                        <div class="subgroup">
-                            <h4>Subgrupo C: Búsqueda Digital & 2D</h4>
-                            <ul>
-                                <li><a href="#" onclick="loadAlgorithm('trie')">Árbol de Búsqueda Digital (Trie)</a></li>
-                                <li><a href="#" onclick="loadAlgorithm('arboles-2d')">Árboles 2D (k-d Tree)</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Módulo 2 -->
-                <div class="nav-module">
-                    <button class="accordion">Módulo 2: Árboles & Grafos</button>
-                    <div class="panel">
-                        <div class="subgroup">
-                            <h4>Subgrupo A: Árboles de Búsqueda</h4>
-                            <ul>
-                                <li><a href="#" onclick="loadAlgorithm('bst')">Árbol Binario de Búsqueda (BST)</a></li>
-                                <li><a href="#" onclick="loadAlgorithm('arbol-avl')">Árbol AVL (Auto-balanceado)</a></li>
-                            </ul>
-                        </div>
-                        <div class="subgroup">
-                            <h4>Subgrupo B: Propiedades de Árboles</h4>
-                            <ul>
-                                <li><a href="#" onclick="loadAlgorithm('arbol-centro')">Centro y Excentricidad</a></li>
-                            </ul>
-                        </div>
-                        <div class="subgroup">
-                            <h4>Subgrupo C: Árboles de Expansión Mínima</h4>
-                            <ul>
-                                <li><a href="#" onclick="loadAlgorithm('mst-prim')">MST - Algoritmo de Prim</a></li>
-                                <li><a href="#" onclick="loadAlgorithm('mst-kruskal')">MST - Algoritmo de Kruskal</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Módulo 3 -->
-                <div class="nav-module">
-                    <button class="accordion">Módulo 3: Índices & Disco</button>
-                    <div class="panel">
-                        <div class="subgroup">
-                            <h4>Subgrupo A: Índices para Archivos</h4>
-                            <ul>
-                                <li><a href="#" onclick="loadAlgorithm('indice-primario')">Índice Primario (Disperso / Denso)</a></li>
-                                <li><a href="#" onclick="loadAlgorithm('indice-secundario')">Índice Secundario</a></li>
-                                <li><a href="#" onclick="loadAlgorithm('indice-multinivel')">Índice Multinivel (Árbol B/B+)</a></li>
-                            </ul>
-                        </div>
-                        <div class="subgroup">
-                            <h4>Subgrupo B: Accesos a Disco</h4>
-                            <ul>
-                                <li><a href="#" onclick="loadAlgorithm('calculadora-disco')">Calculadora de Accesos a Disco (I/O)</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-        </aside>
-
-        <!-- Contenido Principal -->
-        <main class="main-content">
-            <!-- Vista de Inicio (Activa por defecto) -->
-            <section id="welcome-view" class="view active">
-                <div class="welcome-container">
-                    <div class="welcome-card-large">
+    <main class="main-content">
+        <!-- ============ VISTA DE INICIO ============ -->
+        <section id="welcome-view" class="view active">
+            <div class="welcome-container">
+                <div class="welcome-card-large">
+                    <div>
                         <h1>Entorno Interactivo de Simulación</h1>
-                        <p class="welcome-subtitle">Ciencias de la Computación II &mdash; Universidad Distrital</p>
-                    </div>
-
-                    <div class="module-cards-grid">
-                        <div class="module-card" onclick="openModuleAccordion(0); loadAlgorithm('binaria');">
-                            <div class="card-icon">🔍</div>
-                            <h3>Módulo 1: Búsquedas & Hashing</h3>
-                            <p>Algoritmos secuenciales, binarios, funciones hash, resolución de colisiones y búsqueda digital.</p>
-                            <span class="card-link">Explorar Módulo &rarr;</span>
-                        </div>
-
-                        <div class="module-card" onclick="openModuleAccordion(1); loadAlgorithm('bst');">
-                            <div class="card-icon">🌳</div>
-                            <h3>Módulo 2: Árboles & Grafos</h3>
-                            <p>Estructuras jerárquicas, Árboles BST, AVL, 2D, Trie, Centro de Árboles y MST (Prim & Kruskal).</p>
-                            <span class="card-link">Explorar Módulo &rarr;</span>
-                        </div>
-
-                        <div class="module-card" onclick="openModuleAccordion(2); loadAlgorithm('indice-primario');">
-                            <div class="card-icon">🗂️</div>
-                            <h3>Módulo 3: Índices & Disco</h3>
-                            <p>Organización de archivos, índices primarios, secundarios, multinivel y cálculo de accesos a disco.</p>
-                            <span class="card-link">Explorar Módulo &rarr;</span>
-                        </div>
+                        <p class="welcome-subtitle">Ciencias de la Computación II — Universidad Distrital Francisco José de Caldas</p>
+                        <p class="welcome-note">Todos los algoritmos se calculan en tiempo real sobre los datos o grafos que usted ingrese o dibuje. Cada vista incluye <em>presets</em> con los ejemplos de clase.</p>
                     </div>
                 </div>
-            </section>
+                <div class="module-cards-grid" id="module-cards"></div>
+            </div>
+        </section>
 
-            <!-- Vista de Algoritmo -->
-            <section id="algorithm-view" class="view">
-                <header class="view-header">
-                    <button class="btn-back" onclick="showView('welcome-view')">
-                        <span class="btn-back-icon">&#8592;</span> Volver al Inicio
-                    </button>
-                    <h2 id="current-algorithm-title">Nombre del Algoritmo</h2>
-                </header>
-                
-                <div class="workspace">
-                    <!-- 1. Área Visual Principal -->
-                    <div class="simulation-area">
-                        <div class="simulation-header">
-                            <h3>Simulación y Entrada de Datos</h3>
-                            <span id="algo-badge" class="algo-badge">Búsqueda Binaria</span>
-                        </div>
-                        
-                        <!-- Controles de Simulación Dinámicos -->
-                        <div class="sim-controls">
-                            <!-- Operación Hash -->
-                            <div class="input-wrapper" id="hash-action-container" style="display: none;">
-                                <label for="hash-action" class="input-label">Operación:</label>
-                                <select id="hash-action" class="input-select">
-                                    <option value="insert">Insertar Clave</option>
-                                    <option value="search">Buscar Clave</option>
-                                    <option value="delete">Eliminar Clave</option>
-                                </select>
-                            </div>
+        <!-- ============ VISTA DE ALGORITMO (workspace unificado) ============ -->
+        <section id="algorithm-view" class="view">
+            <header class="view-header">
+                <button class="btn-back" id="btn-back"><span class="btn-back-icon">&#8592;</span> Volver al Inicio</button>
+                <div class="view-title-row">
+                    <h2 id="current-algorithm-title">Algoritmo</h2>
+                    <span id="current-module-chip" class="module-chip"></span>
+                </div>
+            </header>
 
-                            <!-- Selector de Recorridos para Árboles -->
-                            <div class="input-wrapper" id="tree-traversal-container" style="display: none;">
-                                <label for="tree-traversal" class="input-label">Recorrido:</label>
-                                <select id="tree-traversal" class="input-select" onchange="triggerTreeTraversal()">
-                                    <option value="inorder">Inorden (Izq, R, Der)</option>
-                                    <option value="preorder">Preorden (R, Izq, Der)</option>
-                                    <option value="postorder">Postorden (Izq, Der, R)</option>
-                                </select>
-                            </div>
-
-                            <!-- Toggle Tipo de Índice -->
-                            <div class="input-wrapper" id="index-mode-container" style="display: none;">
-                                <label for="index-mode" class="input-label">Modo Índice:</label>
-                                <select id="index-mode" class="input-select" onchange="toggleIndexMode()">
-                                    <option value="sparse">Disperso (Sparse)</option>
-                                    <option value="dense">Denso (Dense)</option>
-                                </select>
-                            </div>
-
-                            <!-- Campo Tamaño de Clave (para Hash Centro del Cuadrado) -->
-                            <div class="input-wrapper" id="key-size-container" style="display: none;">
-                                <label for="key-size" class="input-label">Tamaño clave:</label>
-                                <input type="number" id="key-size" class="input-data" placeholder="Ej: 4" min="1" max="10" value="4" style="width: 75px;">
-                            </div>
-
-                            <!-- Campo de Entrada Principal -->
-                            <div class="input-wrapper" id="main-input-wrapper">
-                                <label for="target-value" id="input-data-label" class="input-label">Buscar clave:</label>
-                                <input type="number" id="target-value" class="input-data" placeholder="Ej: 16" min="0">
-                            </div>
-
-                            <!-- Botones de Control de Simulación -->
-                            <button id="btn-step" class="btn-primary" onclick="stepSimulation()">
-                                <span class="btn-icon">&#9654;</span> <span id="btn-step-text">Siguiente Paso</span>
-                            </button>
-                            <button id="btn-auto" class="btn-secondary" onclick="toggleAutoSimulation()">
-                                <span id="auto-icon">&#9658;&#9658;</span> <span id="auto-text">Automático</span>
-                            </button>
-                            <button class="btn-secondary" onclick="resetSimulation()">
-                                <span class="btn-icon">&#8634;</span> Reiniciar
-                            </button>
-                            <button id="btn-random" class="btn-secondary btn-icon-only" onclick="generateRandomData()" title="Generar nuevos datos">
-                                <span>&#127922; Nuevo</span>
-                            </button>
-                        </div>
-
-                        <!-- Banner de Estado de la Simulación -->
-                        <div class="sim-status-banner" id="sim-status-banner">
-                            Ingrese una clave a buscar y presione <strong>Siguiente Paso</strong> o <strong>Automático</strong> para iniciar el rastreo.
-                        </div>
-
-                        <!-- Banner con la Fórmula Matemática Dinámica -->
-                        <div id="formula-box" class="formula-box" style="display: none;">
-                            <span class="formula-title">Fórmula:</span>
-                            <span id="formula-expression" class="formula-expression">h(k) = k mod N</span>
-                        </div>
-
-                        <!-- Visualizadores Dinámicos segun el Tipo de Algoritmo -->
-                        <div class="array-visualizer-wrapper">
-                            <!-- Visualizador de Arreglo / Hashing -->
-                            <div class="array-container" id="array-visualizer"></div>
-
-                            <!-- Visualizador de Árboles (SVG / Dynamic DOM Nodes) -->
-                            <div class="tree-container" id="tree-visualizer" style="display: none;"></div>
-
-                            <!-- Visualizador de Índices & Disco -->
-                            <div class="index-container" id="index-visualizer" style="display: none;"></div>
-
-                            <!-- Visualizador de Grafos / MST -->
-                            <div class="graph-container" id="graph-visualizer" style="display: none;"></div>
-
-                            <!-- Panel Calculadora de Accesos a Disco -->
-                            <div class="calculator-container" id="calculator-visualizer" style="display: none;"></div>
-                        </div>
-
-                        <!-- Panel de Logs / Registro de Ejecución -->
-                        <div class="log-panel">
-                            <div class="log-header">
-                                <h4>Registro de Ejecución</h4>
-                                <button class="btn-clear-logs" onclick="clearLogs()" title="Limpiar registro">Limpiar</button>
-                            </div>
-                            <ul id="execution-logs">
-                                <!-- Los mensajes del algoritmo aparecerán aquí dinámicamente -->
-                            </ul>
-                        </div>
+            <div class="workspace">
+                <div class="simulation-area">
+                    <div class="simulation-header">
+                        <h3>Simulación y Entrada de Datos</h3>
+                        <span id="algo-badge" class="algo-badge">—</span>
                     </div>
 
-                    <!-- 2. Panel de Complejidad & Métricas -->
-                    <aside class="complexity-panel">
-                        <h3>Análisis de Complejidad</h3>
-                        <div class="metrics">
-                            <div class="metric-card">
-                                <span>Tiempo (Peor Caso)</span>
-                                <strong id="time-complexity">O(n)</strong>
-                            </div>
-                            <div class="metric-card">
-                                <span>Espacio / Memoria</span>
-                                <strong id="space-complexity">O(1)</strong>
-                            </div>
+                    <!-- Controles propios de cada módulo -->
+                    <div class="sim-controls" id="module-controls"></div>
+
+                    <!-- Controles globales de simulación -->
+                    <div class="sim-player" id="sim-player">
+                        <button id="btn-step" class="btn-primary" title="Ejecuta el siguiente paso"><span class="btn-icon">&#9654;</span> Siguiente Paso</button>
+                        <button id="btn-auto" class="btn-secondary"><span id="auto-icon">&#9658;&#9658;</span> <span id="auto-text">Automático</span></button>
+                        <button id="btn-reset" class="btn-secondary"><span class="btn-icon">&#8634;</span> Reiniciar</button>
+                        <label class="speed-label">Velocidad
+                            <input type="range" id="sim-speed" min="100" max="2000" step="100" value="800">
+                        </label>
+                        <span class="step-counter" id="step-counter">Paso 0 / 0</span>
+                    </div>
+
+                    <div class="sim-status-banner" id="sim-status-banner">Seleccione un tema.</div>
+
+                    <div id="formula-box" class="formula-box" style="display:none;">
+                        <span class="formula-title">Fórmula:</span>
+                        <span id="formula-expression" class="formula-expression"></span>
+                    </div>
+
+                    <!-- Escenario visual de cada módulo -->
+                    <div class="stage" id="stage"></div>
+
+                    <div class="log-panel">
+                        <div class="log-header">
+                            <h4>Registro de Ejecución</h4>
+                            <button class="btn-clear-logs" id="btn-clear-logs" title="Limpiar registro">Limpiar</button>
                         </div>
-                        <div class="analysis-details">
-                            <p id="algorithm-description">Aquí se detallará el respectivo análisis de complejidad del algoritmo en ejecución.</p>
-                        </div>
-                    </aside>
+                        <ul id="execution-logs"></ul>
+                    </div>
                 </div>
-            </section>
-        </main>
-    </div>
-    <script src="app.js"></script>
+
+                <aside class="complexity-panel">
+                    <h3>Análisis de Complejidad</h3>
+                    <div class="metrics">
+                        <div class="metric-card"><span>Tiempo (Peor Caso)</span><strong id="time-complexity">—</strong></div>
+                        <div class="metric-card"><span>Espacio / Memoria</span><strong id="space-complexity">—</strong></div>
+                    </div>
+                    <div class="analysis-details">
+                        <p id="algorithm-description"></p>
+                        <ul id="algorithm-notes" class="theory-notes"></ul>
+                    </div>
+                    <div id="side-extra" class="side-extra"></div>
+                </aside>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- Carga ordenada de módulos (sin servidor ni bundler) -->
+<script src="js/core.js"></script>
+<script src="js/mod1_busquedas.js"></script>
+<script src="js/mod2_arboles_indices.js"></script>
+<script src="js/graph_engine.js"></script>
+<script src="js/mod3_grafos_caminos.js"></script>
+<script src="js/mod4_grafos_avanzados.js"></script>
 </body>
 </html>
