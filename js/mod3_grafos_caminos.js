@@ -435,11 +435,12 @@ const GraphProducts = {
     build(g1, g2, kind) {
         const r = new Graph();
         const A = g1.ids(), B = g2.ids();
-        const W = 800, H = 380, cols = B.length, rows = A.length;
+        // Como en el taller de clase: columnas = vértices de G₁, filas = vértices de G₂.
+        const W = 800, H = 380, cols = A.length, rows = B.length;
         const dx = Math.min(150, (W - 120) / Math.max(1, cols - 1)), dy = Math.min(110, (H - 70) / Math.max(1, rows - 1));
         const ox = (W - dx * (cols - 1)) / 2, oy = (H - dy * (rows - 1)) / 2;
         const id = {};
-        A.forEach((u, i) => B.forEach((v, j) => { id[u + ',' + v] = r.addNode(`(${g1.label(u)},${g2.label(v)})`, ox + j * dx, oy + i * dy); }));
+        A.forEach((u, i) => B.forEach((v, j) => { id[u + ',' + v] = r.addNode(`(${g1.label(u)},${g2.label(v)})`, ox + i * dx, oy + j * dy); }));
         const P = []; A.forEach(u => B.forEach(v => P.push([u, v])));
         const evals = [];
         for (let x = 0; x < P.length; x++) for (let y = x + 1; y < P.length; y++) {
@@ -459,7 +460,7 @@ const GraphProducts = {
 };
 App.register('g-productos', (() => {
     let e1, e2, er, ui = {};
-    const defs = { cart: ['Cartesiano G₁ □ G₂', '(u₁,v₁) ~ (u₂,v₂) ⇔ [u₁ = u₂ ∧ v₁ ~ v₂] ∨ [v₁ = v₂ ∧ u₁ ~ u₂]', (n1, m1, n2, m2) => n1 * m2 + n2 * m1, 'n₁m₂ + n₂m₁'], tens: ['Tensorial G₁ × G₂', '(u₁,v₁) ~ (u₂,v₂) ⇔ u₁ ~ u₂ ∧ v₁ ~ v₂', (n1, m1, n2, m2) => 2 * m1 * m2, '2·m₁·m₂'], comp: ['Composición G₁[G₂]', '(u₁,v₁) ~ (u₂,v₂) ⇔ u₁ ~ u₂ ∨ [u₁ = u₂ ∧ v₁ ~ v₂]', (n1, m1, n2, m2) => n1 * m2 + n2 * n2 * m1, 'n₁m₂ + n₂²m₁'] };
+    const defs = { cart: ['Cartesiano G₁ □ G₂', '(u₁,v₁) ~ (u₂,v₂) ⇔ [u₁ = u₂ ∧ v₁ ~ v₂] ∨ [v₁ = v₂ ∧ u₁ ~ u₂]', (n1, m1, n2, m2) => n1 * m2 + n2 * m1, 'n₁m₂ + n₂m₁'], tens: ['Tensorial G₁ ⊗ G₂', '(u₁,v₁) ~ (u₂,v₂) ⇔ u₁ ~ u₂ ∧ v₁ ~ v₂', (n1, m1, n2, m2) => 2 * m1 * m2, '2·m₁·m₂'], comp: ['Composición G₁[G₂]', '(u₁,v₁) ~ (u₂,v₂) ⇔ u₁ ~ u₂ ∨ [u₁ = u₂ ∧ v₁ ~ v₂]', (n1, m1, n2, m2) => n1 * m2 + n2 * n2 * m1, 'n₁m₂ + n₂²m₁'] };
     function run() {
         const g1 = e1.getGraph(), g2 = e2.getGraph(), kind = ui.kind.value;
         const s1 = GA.isSimple(g1), s2 = GA.isSimple(g2);
@@ -469,7 +470,7 @@ App.register('g-productos', (() => {
         const { g, evals } = GraphProducts.build(g1, g2, kind);
         const frames = [];
         const empty = g.clone(); empty.edges = [];
-        frames.push({ draw: () => er.setGraph(empty.clone()), log: `${name}: S = S₁ × S₂ = ${g1.n}·${g2.n} = ${g.n} vértices (u, v) en cuadrícula (filas: G₁, columnas: G₂). Regla: ${rule}`, type: 'step', formula: rule });
+        frames.push({ draw: () => er.setGraph(empty.clone()), log: `${name}: S = S₁ × S₂ = ${g1.n}·${g2.n} = ${g.n} vértices fusionados (u, v) en cuadrícula (columnas: G₁, filas: G₂, como en el taller). Regla: ${rule}`, type: 'step', formula: rule });
         const cur = empty.clone();
         evals.forEach(ev => {
             if (!ev.ok) return;
@@ -486,11 +487,11 @@ App.register('g-productos', (() => {
     return {
         run,
         mount({ controls, stage }) {
-            ui.kind = UI.select([['cart', 'Cartesiano G₁ □ G₂'], ['tens', 'Tensorial G₁ × G₂'], ['comp', 'Composición G₁[G₂]']], 'cart');
+            ui.kind = UI.select([['cart', 'Cartesiano G₁ □ G₂'], ['tens', 'Tensorial G₁ ⊗ G₂ (círculo con ×)'], ['comp', 'Composición G₁[G₂]']], 'cart');
             controls.append(UI.field('Producto:', ui.kind), UI.btn('Calcular', run, 'btn-primary'));
             const c1 = h('div'), c2 = h('div'); stage.append(c1, c2);
-            e1 = new GraphEditor(c1, { title: 'G₁', preset: 'p3', presets: ['p3', 'k2', 'k3', 'c5'], height: 330, forceDirected: false, forceWeighted: false });
-            e2 = new GraphEditor(c2, { title: 'G₂', preset: 'k2', presets: ['k2', 'p3', 'k3'], height: 330, forceDirected: false, forceWeighted: false });
+            e1 = new GraphEditor(c1, { title: 'G₁', preset: 'g1-prod', presets: ['g1-prod', 'p3', 'k2', 'k3', 'c5'], height: 330, forceDirected: false, forceWeighted: false });
+            e2 = new GraphEditor(c2, { title: 'G₂', preset: 'g2-prod', presets: ['g2-prod', 'k2', 'p3', 'k3'], height: 330, forceDirected: false, forceWeighted: false });
             const c3 = h('div'); stage.appendChild(c3);
             er = new GraphEditor(c3, { title: 'Producto (estructura unificada)', editable: false, height: 380 });
             ui.table = h('div', { style: { maxHeight: '320px', overflowY: 'auto' } }); stage.appendChild(ui.table);
@@ -577,12 +578,12 @@ App.register('g-centro', (() => {
     return {
         run,
         mount({ controls, stage }) {
-            ui.w = h('input', { type: 'checkbox' });
+            ui.w = h('input', { type: 'checkbox', checked: true });
             controls.append(h('label', { class: 'check-wrapper' }, ui.w, h('span', { text: 'Usar pesos (si es ponderado)' })), UI.btn('Calcular paso a paso', run, 'btn-primary'));
             [['dist', 'Distancia Σ'], ['ecc', 'Excentricidad'], ['center', 'Centro / Bicentro'], ['radius', 'Radio'], ['diameter', 'Diámetro'], ['median', 'Mediana']].forEach(([k, t]) => controls.append(UI.btn(t, () => render(k), 'btn-small')));
             ui.w.addEventListener('change', () => render(null));
             const top = h('div'); stage.appendChild(top);
-            ed = new GraphEditor(top, { preset: 'fig12', presets: ['fig12', 'arbol', 'clase-basico', 'petersen', 'mst', 'c6'], onChange: () => render(null) });
+            ed = new GraphEditor(top, { preset: 'fig12', presets: ['fig12', 'centro-8', 'arbol', 'clase-basico', 'petersen', 'mst', 'c6'], onChange: () => render(null) });
             ui.out = h('div', { class: 'stage-col' });
             const sc = h('div');
             stage.append(h('div', { class: 'split-2' }, ui.out, sc));
@@ -705,7 +706,7 @@ App.register('g-expansion', (() => {
             ui.start = UI.select([], '');
             controls.append(UI.field('Algoritmo:', ui.alg), UI.field('Inicio (Prim):', ui.start), UI.btn('Construir T', run, 'btn-primary'));
             const top = h('div'); stage.appendChild(top);
-            ed = new GraphEditor(top, { preset: 'mst', presets: ['mst', 'mst-pequeno', 'clase-basico', 'k4', 'petersen'], forceDirected: false, onChange: changed });
+            ed = new GraphEditor(top, { preset: 'mst-clase', presets: ['mst-clase', 'mst', 'mst-pequeno', 'clase-basico', 'k4', 'petersen'], forceDirected: false, onChange: changed });
             const row = h('div', { class: 'split-2' }); stage.appendChild(row);
             const a = h('div'), b = h('div'); row.append(a, b);
             eT = new GraphEditor(a, { title: 'T = (S_T, A_T) — ramas', editable: false, height: 280 });
@@ -723,23 +724,38 @@ App.register('g-expansion', (() => {
  * 3.5  FUNCIÓN ORDINAL + BELLMAN
  * ===================================================================== */
 const Ordinal = {
-    /** Devuelve {levels: [[ids]], ok, cycle, remaining} */
-    compute(g) {
-        const rem = new Set(g.ids()), levels = [];
-        while (rem.size) {
-            const lvl = Array.from(rem).filter(v => !g.edges.some(e => e.v === v && rem.has(e.u) && e.u !== v));
-            const selfLoop = Array.from(rem).filter(v => g.edges.some(e => e.u === v && e.v === v));
-            if (!lvl.length || selfLoop.length) {
-                const cyc = selfLoop.length ? [selfLoop[0], selfLoop[0]] : GA.findDirectedCycle(g, Array.from(rem));
-                return { levels, ok: false, cycle: cyc, remaining: Array.from(rem) };
+    /** Etiqueta i-ésima según el contador inicial elegido en clase (0, 1 o la letra a). */
+    tag(start, k) { return start === 'a' ? String.fromCharCode(97 + k) : String(Number(start) + k); },
+    /** Orden de lectura usado en clase: de izquierda a derecha y, en la misma columna, de arriba hacia abajo. */
+    readingOrder(g, ids) { return ids.slice().sort((a, b) => { const p = g.node(a), q = g.node(b); return Math.abs(p.x - q.x) > 40 ? p.x - q.x : (p.y - q.y || p.x - q.x); }); },
+    /**
+     * Función ordinal como se enseñó: UN vértice por paso con un contador i que se incrementa.
+     *   Paso 1: asignar i a un vértice SIN predecesores.
+     *   Paso 2: repetir el paso 1; si no hay, asignar i a un vértice cuyos predecesores YA estén todos etiquetados.
+     *   Empates: el orden de lectura (izquierda→derecha, arriba→abajo).
+     * Devuelve {order, label:{id→etiqueta}, steps:[{v, rule, cands, tag}], ok, cycle, remaining}
+     */
+    compute(g, start = '0') {
+        const labeled = new Set(), order = [], label = {}, steps = [];
+        const loop = g.edges.find(e => e.u === e.v);
+        while (labeled.size < g.n) {
+            const rest = g.ids().filter(v => !labeled.has(v));
+            const noPred = rest.filter(v => !g.edges.some(e => e.v === v));
+            const allPredLab = rest.filter(v => g.edges.every(e => e.v !== v || (e.u !== v && labeled.has(e.u))));
+            const rule = noPred.length ? 1 : 2;
+            const cands = Ordinal.readingOrder(g, rule === 1 ? noPred : allPredLab);
+            if (!cands.length) {
+                const cyc = GA.findDirectedCycle(g, rest) || (loop ? [loop.u, loop.u] : null);
+                return { order, label, steps, ok: false, cycle: cyc, remaining: rest };
             }
-            levels.push(lvl); lvl.forEach(v => rem.delete(v));
+            const v = cands[0], t = Ordinal.tag(start, order.length);
+            labeled.add(v); order.push(v); label[v] = t;
+            steps.push({ v, rule, cands, tag: t });
         }
-        return { levels, ok: true };
+        return { order, label, steps, ok: true };
     },
     /** Bellman sobre el orden ordinal. Devuelve {lambda, pred, evals} */
-    bellman(g, levels, src) {
-        const order = levels.flat();
+    bellman(g, order, src) {
         const lambda = {}, pred = {}, evals = [];
         order.forEach(v => { lambda[v] = Infinity; pred[v] = []; });
         lambda[src] = 0;
@@ -763,38 +779,44 @@ App.register('g-bellman', (() => {
         if (!g.directed) { ui.alerts.appendChild(UI.alert('inconsistency', 'Bellman requiere un grafo DIRIGIDO', 'La función ordinal se define sobre las flechas entrada/salida. Marque “Dirigido”.')); return Status.set('El grafo debe ser dirigido.', 'error'); }
         const src = g.idOf(ui.src.value), dst = g.idOf(ui.dst.value);
         const frames = [];
-        const ord = Ordinal.compute(g);
+        const start = ui.start.value;
+        const ord = Ordinal.compute(g, start);
         const ann = {};
-        frames.push({ draw: () => ed.clearOverlay(), log: 'FASE 1 — Función ordinal: en cada nivel se toman los vértices sin predecesores entre los restantes.', type: 'step', formula: 'O(v) = k ⇔ v no tiene predecesores en S − (N₀ ∪ … ∪ Nₖ₋₁)' });
-        ord.levels.forEach((lvl, k) => {
-            lvl.forEach(v => ann[v] = [{ text: `O=${k}`, cls: 'ann-peach' }]);
+        const OL = v => ord.label[v] !== undefined ? ord.label[v] : '?';
+        // λ con subíndice ordinal, como en el tablero (λ₀, λ₁, …); si el nombre del vértice difiere se aclara entre paréntesis.
+        const lam = v => { const t = OL(v); const s = /^\d+$/.test(t) ? U.sub(Number(t)) : t; return `λ${s}${t !== g.label(v) ? `(${g.label(v)})` : ''}`; };
+        frames.push({ draw: () => ed.clearOverlay(), log: `FASE 1 — Función ordinal. Contador inicial i = ${Ordinal.tag(start, 0)}. Paso 1: asignar i a un vértice SIN predecesores. Paso 2: repetir el paso 1; si no hay, asignar i a un vértice cuyos predecesores ya estén TODOS etiquetados. Empates: se lee de izquierda a derecha y de arriba hacia abajo.`, type: 'step', formula: 'i ← inicial; mientras queden vértices: elegir v (paso 1 o 2), O(v) ← i, i ← i + 1' });
+        ord.steps.forEach((st, k) => {
+            ann[st.v] = [{ text: `O=${st.tag}`, cls: 'ann-peach' }];
             const a = JSON.parse(JSON.stringify(ann));
-            frames.push({ draw: () => { const ov = { nodeAnn: a, nodeCls: {} }; lvl.forEach(v => ov.nodeCls[v] = 'c-hl'); ed.setOverlay(ov); }, log: `Nivel N${U.sub(k)} = ${GUI.setLabels(g, lvl)} (sin predecesores restantes).`, type: 'compare' });
+            const why = st.rule === 1 ? 'no tiene predecesores' : `todos sus predecesores ${GUI.setLabels(g, g.preds(st.v).map(p => p.from))} ya están etiquetados`;
+            const tie = st.cands.length > 1 ? ` Candidatos ${GUI.setLabels(g, st.cands)}: por orden de lectura se toma ${g.label(st.v)}.` : '';
+            frames.push({ draw: () => { const ov = { nodeAnn: a, nodeCls: {} }; st.cands.forEach(v => ov.nodeCls[v] = 'c-consider'); ov.nodeCls[st.v] = 'c-hl'; ed.setOverlay(ov); }, log: `i = ${st.tag} → ${g.label(st.v)} (paso ${st.rule}: ${why}).${tie} El contador se incrementa.`, type: 'compare' });
         });
         if (!ord.ok) {
             const cyc = ord.cycle || [];
             const cycEdges = [];
             for (let i = 1; i < cyc.length; i++) { const e = g.edges.find(e => e.u === cyc[i - 1] && e.v === cyc[i]); if (e) cycEdges.push(e.id); }
             const a = JSON.parse(JSON.stringify(ann));
-            const msg = `Los vértices ${GUI.setLabels(g, ord.remaining)} siempre tienen un predecesor: existe el CICLO DIRIGIDO ${cyc.map(i => g.label(i)).join(' → ')}. La función ordinal no puede completarse y por tanto Bellman NO es aplicable (no se ejecuta parcialmente).`;
+            const msg = `Al aplicar la función ordinal no se pudieron etiquetar ${GUI.setLabels(g, ord.remaining)}: ninguno carece de predecesores ni tiene todos sus predecesores etiquetados, porque existe el CICLO DIRIGIDO ${cyc.map(i => g.label(i)).join(' → ')} (flecha entra, flecha sale). Como el grafo no se puede etiquetar completo, el algoritmo de Bellman NO se puede aplicar (Bellman no retrocede; tampoco se ejecuta “hasta donde se pueda”). Use Dijkstra, que sí admite ciclos.`;
             frames.push({
                 draw: () => { const ov = { nodeAnn: a, nodeCls: {}, edgeCls: {} }; ord.remaining.forEach(v => ov.nodeCls[v] = 'c-dim'); cyc.forEach(v => ov.nodeCls[v] = 'c-bad'); cycEdges.forEach(e => ov.edgeCls[e] = 'c-bad'); ed.setOverlay(ov); ui.alerts.innerHTML = ''; ui.alerts.appendChild(UI.alert('inconsistency', 'Inconsistencia: el grafo contiene un ciclo dirigido', msg)); },
                 log: 'ERROR: ' + msg, type: 'error', status: '<strong>Bellman no aplica:</strong> el grafo tiene un ciclo dirigido. Use Dijkstra.', statusType: 'error',
             });
             return Sim.load(frames, { base: () => { ed.clearOverlay(); ui.alerts.innerHTML = ''; } });
         }
-        frames.push({ log: `Función ordinal completa: ${ord.levels.map((l, k) => `N${U.sub(k)}=${GUI.setLabels(g, l)}`).join(' · ')}. El grafo es acíclico.`, type: 'found' });
-        const B = Ordinal.bellman(g, ord.levels, src);
+        frames.push({ log: `Función ordinal completa (sin ciclos dirigidos): ${ord.order.map(v => `${g.label(v)}=${OL(v)}`).join(', ')}.`, type: 'found' });
+        const B = Ordinal.bellman(g, ord.order, src);
         const wl = GA.weightLabels(g);
-        const lam = {};
-        frames.push({ log: `FASE 2 — Bellman desde ${g.label(src)}: λ${g.label(src)} = 0; luego en orden ordinal λⱼ = mín{λᵢ + d(i, j)} sobre los predecesores i.`, type: 'step', formula: 'λⱼ = mín { λᵢ + d(i, j) : i ∈ P(j) }' });
+        const lamV = {};
+        frames.push({ log: `FASE 2 — Bellman desde ${g.label(src)}: ${lam(src)} = 0; luego, para j en el orden ordinal, λⱼ = mín{λᵢ + d(i, j)} comparando todas las aristas que llegan a j.`, type: 'step', formula: 'λⱼ = mín { λᵢ + d(i, j) : i predecesor de j }' });
         B.evals.forEach(ev => {
-            lam[ev.j] = ev.val;
-            const lc = Object.assign({}, lam);
+            lamV[ev.j] = ev.val;
+            const lc = Object.assign({}, lamV);
             let msg;
-            if (ev.src) msg = `λ${g.label(ev.j)} = 0 (origen).`;
-            else if (!ev.terms.length) msg = `λ${g.label(ev.j)}: no tiene predecesores → ∞.`;
-            else msg = `λ${g.label(ev.j)} = mín{ ${ev.terms.map(t => `λ${g.label(t.from)} + d(${g.label(t.from)},${g.label(ev.j)}) = ${U.fmt(B.lambda[t.from] === undefined ? Infinity : lc[t.from])} + ${wl[t.e.id]} = ${U.fmt(t.val)}`).join(' ; ')} } = ${U.fmt(ev.val)}${ev.val < Infinity && ev.terms.filter(t => t.val === ev.val).length > 1 ? '  (EMPATE: varios predecesores óptimos)' : ''}`;
+            if (ev.src) msg = `${lam(ev.j)} = 0 (vértice de inicio).`;
+            else if (!ev.terms.length || ev.val === Infinity) msg = `${lam(ev.j)}: no hay camino desde ${g.label(src)} (sus predecesores tienen λ = ∞) → ∞.`;
+            else msg = `${lam(ev.j)} = mín{ ${ev.terms.map(t => `${lam(t.from)} + d(${OL(t.from)},${OL(ev.j)}) = ${U.fmt(lc[t.from] === undefined ? Infinity : lc[t.from])} + ${wl[t.e.id]} = ${U.fmt(t.val)}`).join(' ; ')} } = ${U.fmt(ev.val)}${ev.val < Infinity && ev.terms.filter(t => t.val === ev.val).length > 1 ? '  (EMPATE: varios predecesores óptimos ⇒ varias rutas)' : ''}`;
             const preds = B.pred[ev.j].map(p => p.e.id);
             frames.push({ draw: () => { const ov = { nodeAnn: {}, nodeCls: { [src]: 'c-src', [ev.j]: 'c-current' }, edgeCls: {} }; g.ids().forEach(v => { ov.nodeAnn[v] = [].concat(lc[v] !== undefined ? [{ text: `λ=${U.fmt(lc[v])}`, cls: 'ann-green' }] : [], ann[v]); }); ev.terms.forEach(t => ov.edgeCls[t.e.id] = 'c-consider'); preds.forEach(e => ov.edgeCls[e] = 'c-hl'); ed.setOverlay(ov); }, log: msg, type: 'compare' });
         });
@@ -807,12 +829,16 @@ App.register('g-bellman', (() => {
             ed.setOverlay(ov);
         };
         const rtxt = r => [src].concat(r.map(p => p.e.v)).map(i => g.label(i)).join(' → ');
-        const rev = r => [dst].concat(r.slice().reverse().map(p => p.from)).map(i => g.label(i)).join(' ← ');
-        if (!routes.length) frames.push({ draw: () => showRoutes(), log: `λ${g.label(dst)} = ∞: ${g.label(dst)} no es alcanzable desde ${g.label(src)}.`, type: 'notfound', status: `No existe ruta de ${g.label(src)} a ${g.label(dst)}.`, statusType: 'notfound' });
+        const rev = r => {
+            // Reversa como en el tablero: λ_dst se obtuvo de λᵢ + d(i, dst); λᵢ se obtuvo de …, hasta λ_origen = 0.
+            const parts = r.slice().reverse().map(p => `${lam(p.e.v)} = ${U.fmt(B.lambda[p.e.v])} viene de ${lam(p.from)} = ${U.fmt(B.lambda[p.from])} + ${wl[p.e.id]}`);
+            return `${[dst].concat(r.slice().reverse().map(p => p.from)).map(i => g.label(i)).join(' ← ')}  [${parts.join('; ')}]`;
+        };
+        if (!routes.length) frames.push({ draw: () => showRoutes(), log: `${lam(dst)} = ∞: ${g.label(dst)} no es alcanzable desde ${g.label(src)}.`, type: 'notfound', status: `No existe ruta de ${g.label(src)} a ${g.label(dst)}.`, statusType: 'notfound' });
         else {
             routes.forEach((r, i) => frames.push({ draw: () => showRoutes(i), log: `Ruta ${i + 1} (reconstruida en reversa): ${rev(r)}`, type: 'found' }));
-            frames.push({ draw: () => { showRoutes(); ui.routes.innerHTML = ''; ui.routes.appendChild(UI.card(`${routes.length} ruta(s) mínima(s) de costo ${U.fmt(B.lambda[dst])} (clic para resaltar)`, UI.chips(routes.map(rtxt), i => showRoutes(i)))); ui.routes.appendChild(UI.table(['Vértice', 'Nivel ordinal', 'λⱼ', 'Predecesor(es) óptimo(s)'], ord.levels.flatMap((l, k) => l.map(v => [g.label(v), k, U.fmt(B.lambda[v]), B.pred[v].map(p => g.label(p.from)).join(', ') || '—'])))); },
-                log: `Distancia mínima ${g.label(src)} → ${g.label(dst)} = ${U.fmt(B.lambda[dst])} con ${routes.length} ruta(s) óptima(s).`, type: 'found', status: `<strong>λ${g.label(dst)} = ${U.fmt(B.lambda[dst])}</strong> · ${routes.length} ruta(s) mínima(s).`, statusType: 'found' });
+            frames.push({ draw: () => { showRoutes(); ui.routes.innerHTML = ''; ui.routes.appendChild(UI.card(`${routes.length} ruta(s) mínima(s) de costo ${U.fmt(B.lambda[dst])} (clic para resaltar)`, UI.chips(routes.map(rtxt), i => showRoutes(i)))); ui.routes.appendChild(UI.table(['Vértice', 'Etiqueta ordinal', 'λⱼ', 'Predecesor(es) óptimo(s)'], ord.order.map(v => [g.label(v), OL(v), U.fmt(B.lambda[v]), B.pred[v].map(p => g.label(p.from)).join(', ') || '—']))); },
+                log: `Distancia mínima ${g.label(src)} → ${g.label(dst)} = ${U.fmt(B.lambda[dst])} con ${routes.length} ruta(s) óptima(s)${routes.length > 1 ? ' (el algoritmo reporta TODAS las soluciones)' : ''}.`, type: 'found', status: `<strong>${lam(dst)} = ${U.fmt(B.lambda[dst])}</strong> · ${routes.length} ruta(s) mínima(s).`, statusType: 'found' });
         }
         Sim.load(frames, { base: () => { ed.clearOverlay(); ui.alerts.innerHTML = ''; ui.routes.innerHTML = ''; } });
     }
@@ -820,10 +846,18 @@ App.register('g-bellman', (() => {
         run,
         mount({ controls, stage }) {
             ui.src = UI.select([], ''); ui.dst = UI.select([], '');
-            controls.append(UI.field('Origen:', ui.src), UI.field('Destino:', ui.dst), UI.btn('Ejecutar Ordinal + Bellman', run, 'btn-primary'));
+            ui.start = UI.select([['0', '0'], ['1', '1'], ['a', 'a']], '0');
+            controls.append(UI.field('Contador ordinal inicia en:', ui.start), UI.field('Origen:', ui.src), UI.field('Destino:', ui.dst), UI.btn('Ejecutar Ordinal + Bellman', run, 'btn-primary'));
             const top = h('div'); stage.appendChild(top);
-            const refresh = g => { GUI.refresh(ui.src, g); GUI.refresh(ui.dst, g); if (ui.dst.selectedIndex === 0 && ui.dst.options.length > 1) ui.dst.selectedIndex = ui.dst.options.length - 1; };
-            ed = new GraphEditor(top, { preset: 'bellman-clase', presets: ['bellman-clase', 'bellman-8', 'bellman-ciclo'], forceDirected: true, forceWeighted: true, onChange: refresh });
+            const refresh = g => {
+                GUI.refresh(ui.src, g); GUI.refresh(ui.dst, g);
+                // por defecto: origen = primer vértice de la función ordinal, destino = último
+                const o = Ordinal.compute(g, '0');
+                if (o.order.length) ui.src.value = g.label(o.order[0]);
+                if (o.ok && o.order.length > 1) ui.dst.value = g.label(o.order[o.order.length - 1]);
+                else if (ui.dst.selectedIndex === 0 && ui.dst.options.length > 1) ui.dst.selectedIndex = ui.dst.options.length - 1;
+            };
+            ed = new GraphEditor(top, { preset: 'bellman-clase', presets: ['bellman-clase', 'bellman-sin-etiquetar', 'bellman-rutas', 'bellman-8', 'bellman-ciclo'], forceDirected: true, forceWeighted: true, onChange: refresh });
             refresh(ed.getGraph());
             ui.alerts = h('div'); ui.routes = h('div', { class: 'stage-col' });
             stage.append(ui.alerts, ui.routes);
@@ -841,11 +875,13 @@ const Dijkstra = {
         if (g.edges.some(e => g.w(e) < 0)) return { negative: true };
         const L = {}; g.ids().forEach(v => L[v] = []);
         const perm = new Set([src]);
-        L[src].push({ d: 0, p: null, state: 'perm' });
+        L[src].push({ d: 0, p: null, state: 'temp' });
         const dist = { [src]: 0 };
         const steps = [];
         const snapL = () => JSON.parse(JSON.stringify(L));
-        steps.push({ L: snapL(), perm: [src], cur: src, msg: `Etiqueta del origen ${g.label(src)}: [0, −] PERMANENTE.`, type: 'step' });
+        steps.push({ L: snapL(), perm: [], cur: src, msg: `Etiqueta inicial en el vértice de inicio ${g.label(src)}: [0, −] (distancia 0, sin predecesor). Inicia como etiqueta TEMPORAL.`, type: 'step' });
+        L[src][0].state = 'perm';
+        steps.push({ L: snapL(), perm: [src], cur: src, msg: `Entre las etiquetas temporales se escoge la de menor valor: [0, −] en ${g.label(src)} → se marca PERMANENTE; desde ella se puede continuar el camino.`, type: 'found' });
         let last = src;
         for (;;) {
             const msgs = [];
@@ -919,7 +955,7 @@ App.register('g-dijkstra', (() => {
             controls.append(UI.field('Origen:', ui.src), UI.field('Destino:', ui.dst), h('label', { class: 'check-wrapper' }, ui.rej, h('span', { text: 'Mostrar candidatas rechazadas' })), UI.btn('Ejecutar Dijkstra', run, 'btn-primary'));
             const top = h('div'); stage.appendChild(top);
             const refresh = g => { GUI.refresh(ui.src, g); GUI.refresh(ui.dst, g, [['*', '(todos)']]); if (ui.dst.value === '*' && ui.dst.options.length > 1) ui.dst.selectedIndex = ui.dst.options.length - 1; };
-            ed = new GraphEditor(top, { preset: 'dijkstra', presets: ['dijkstra', 'dijkstra-dirigido', 'mst', 'bellman-ciclo', 'floyd'], forceWeighted: true, height: 420, onChange: refresh });
+            ed = new GraphEditor(top, { preset: 'bellman-clase', presets: ['bellman-clase', 'dijkstra', 'dijkstra-dirigido', 'bellman-ciclo', 'mst', 'floyd'], forceWeighted: true, height: 420, onChange: refresh });
             refresh(ed.getGraph());
             stage.appendChild(h('div', { class: 'legend' },
                 h('span', { html: '<svg width="56" height="20"><rect x="1" y="1" width="54" height="18" rx="4" fill="#FFFDF6" stroke="#CFB8A6" stroke-dasharray="2 2"/><text x="6" y="14" font-size="11" fill="#1565C0" font-family="monospace" font-weight="800">[d, n]</text></svg> temporal' }),
@@ -937,7 +973,14 @@ App.register('g-dijkstra', (() => {
  * ===================================================================== */
 const Floyd = {
     /** Traza: [{j, D, R, updates, skipped, compared}] usando la condición d(i,j) + d(j,k) < d(i,k). */
-    trace(g, optimize) {
+    /**
+     * mode: 'none'  → las n³ comparaciones, como se hizo a mano en clase (64 para 4 vértices);
+     *       'diag'  → propuesta discutida en clase: cuando i = j la fila no cambia y se omite (n³ − n² comparaciones);
+     *       'full'  → además omite k = j, i = k y los casos con ∞ en la fila/columna j.
+     * rows: por cada j, el detalle fila a fila (i) de las comparaciones (solo si n ≤ 6).
+     */
+    trace(g, mode) {
+        const optimize = mode === 'full', diag = mode === 'diag' || mode === 'full';
         const ids = g.ids(), n = ids.length, ix = {}; ids.forEach((id, i) => ix[id] = i);
         const D = U.range(n).map(i => U.range(n).map(k => (i === k ? 0 : Infinity)));
         const R = U.range(n).map(i => U.range(n).map(k => (i === k ? '−' : '−')));
@@ -945,16 +988,20 @@ const Floyd = {
         // R[i][k] = siguiente vértice desde i hacia k
         const steps = [{ j: -1, D: D.map(r => r.slice()), R: R.map(r => r.slice()), updates: [], skipped: [], compared: 0 }];
         for (let j = 0; j < n; j++) {
-            const updates = [], skipped = []; let compared = 0;
+            const updates = [], skipped = [], rows = []; let compared = 0;
             const prev = D.map(r => r.slice());
             for (let i = 0; i < n; i++) {
+                const row = { i, cmps: [], skippedRow: diag && i === j };
                 for (let k = 0; k < n; k++) {
-                    if (optimize && (i === j || k === j || i === k || prev[i][j] === Infinity || prev[j][k] === Infinity)) { skipped.push([i, k]); continue; }
+                    if ((diag && i === j) || (optimize && (k === j || i === k || prev[i][j] === Infinity || prev[j][k] === Infinity))) { skipped.push([i, k]); continue; }
                     compared++;
-                    if (prev[i][j] + prev[j][k] < D[i][k]) { updates.push({ i, k, old: D[i][k], a: prev[i][j], b: prev[j][k] }); D[i][k] = prev[i][j] + prev[j][k]; R[i][k] = R[i][j]; }
+                    const s = prev[i][j] + prev[j][k], ok = s < D[i][k];
+                    if (n <= 6) row.cmps.push({ k, a: prev[i][j], b: prev[j][k], s, old: D[i][k], ok });
+                    if (ok) { updates.push({ i, k, old: D[i][k], a: prev[i][j], b: prev[j][k] }); D[i][k] = s; R[i][k] = R[i][j]; }
                 }
+                rows.push(row);
             }
-            steps.push({ j, D: D.map(r => r.slice()), R: R.map(r => r.slice()), updates, skipped, compared });
+            steps.push({ j, D: D.map(r => r.slice()), R: R.map(r => r.slice()), updates, skipped, compared, rows });
         }
         return { ids, ix, steps, n };
     },
@@ -970,34 +1017,46 @@ App.register('g-floyd', (() => {
         if (prevSt) row.appendChild(UI.matrix(prevSt.D, L, L, { caption: `D⁽${U.sup(s - 1)}⁾ (anterior)`, cellCls: (i, k) => i === k ? 'cell-diag' : (st.j === i || st.j === k) ? 'cell-pivot' : '' }));
         row.appendChild(UI.matrix(st.D, L, L, {
             caption: `D⁽${U.sup(s)}⁾${st.j >= 0 ? ` — intermedio j = ${L[st.j]}` : ' — matriz inicial (∞ sin arista directa, 0 en la diagonal)'}`,
-            cellCls: (i, k) => up.has(i + ',' + k) ? 'cell-updated' : sk.has(i + ',' + k) && ui.opt.checked && st.j >= 0 && i !== k ? 'cell-skip' : i === k ? 'cell-diag' : (st.j === i || st.j === k) ? 'cell-pivot' : '',
+            cellCls: (i, k) => up.has(i + ',' + k) ? 'cell-updated' : sk.has(i + ',' + k) && ui.mode.value !== 'none' && st.j >= 0 && i !== k ? 'cell-skip' : i === k ? 'cell-diag' : (st.j === i || st.j === k) ? 'cell-pivot' : '',
             colCls: k => k === st.j ? 'th-pivot' : null, rowCls: i => i === st.j ? 'th-pivot' : null,
         }));
         row.appendChild(UI.matrix(st.R, L, L, { caption: `Rutas R⁽${U.sup(s)}⁾ (siguiente vértice)`, fmt: x => x, cellCls: (i, k) => up.has(i + ',' + k) ? 'cell-updated' : '' }));
         ui.mat.appendChild(row);
         const n = T.n;
-        if (st.j >= 0) ui.mat.appendChild(h('div', { class: 'hint', html: `Comparaciones realizadas: <b>${st.compared}</b> de ${n * n}${ui.opt.checked ? ` · omitidas por la optimización (i = j, k = j, i = k o ∞ en fila/columna j): <b>${st.skipped.length}</b>` : ''} · celdas actualizadas: <b>${st.updates.length}</b>` }));
+        if (st.j >= 0) ui.mat.appendChild(h('div', { class: 'hint', html: `Comparaciones realizadas: <b>${st.compared}</b> de ${n * n}${ui.mode.value !== 'none' ? ` · omitidas (${ui.mode.value === 'diag' ? 'fila i = j' : 'i = j, k = j, i = k o ∞ en fila/columna j'}): <b>${st.skipped.length}</b>` : ''} · celdas actualizadas: <b>${st.updates.length}</b>` }));
     }
     function run() {
         const g = ed.getGraph();
         if (!g.n) return Status.set('Dibuje un grafo.', 'error');
-        const T = Floyd.trace(g, ui.opt.checked);
+        const T = Floyd.trace(g, ui.mode.value);
         last = { g, T };
         const L = T.ids.map(i => g.label(i));
         const frames = [];
-        frames.push({ draw: () => { drawStep(g, T, 0); ed.clearOverlay(); }, log: `D⁽⁰⁾: pesos de las aristas directas, ∞ si no hay arista, 0 en la diagonal.`, type: 'step', formula: 'si d(i,j) + d(j,k) &lt; d(i,k) → d(i,k) ← d(i,j) + d(j,k)' });
+        frames.push({ draw: () => { drawStep(g, T, 0); ed.clearOverlay(); }, log: `D⁽⁰⁾ (matriz inicial): camino directo de i a k = peso de la arista${g.weighted ? '' : ' (sin ponderación explícita cada arista vale 1)'}; ∞ si no hay arista directa; 0 en la diagonal (grafo sin bucles).`, type: 'step', formula: 'si d(i,j) + d(j,k) &lt; d(i,k) → d(i,k) ← d(i,j) + d(j,k)' });
         for (let s = 1; s < T.steps.length; s++) {
             const st = T.steps[s], j = st.j;
-            const logs = [[`D⁽${U.sup(s)}⁾ — vértice intermedio j = ${L[j]}: ${st.updates.length} actualización(es)${ui.opt.checked ? `, ${st.skipped.length} casos omitidos` : ''}.`, 'step']];
-            st.updates.slice(0, 40).forEach(u => logs.push([`d(${L[u.i]},${L[j]}) + d(${L[j]},${L[u.k]}) = ${U.fmt(u.a)} + ${U.fmt(u.b)} = ${U.fmt(u.a + u.b)} &lt; d(${L[u.i]},${L[u.k]}) = ${U.fmt(u.old)} → actualizar`, 'compare']));
-            if (st.updates.length > 40) logs.push([`… y ${st.updates.length - 40} más.`, 'info']);
+            const mode = ui.mode.value;
+            const logs = [[`D⁽${U.sup(s)}⁾ (matriz ${s + 1}) — j = ${L[j]} fijo; i y k varían de ${L[0]} a ${L[T.n - 1]}: ${st.compared} comparaciones, ${st.updates.length} cambio(s)${mode !== 'none' ? `, ${st.skipped.length} omitidas` : ''}. Las comparaciones usan la matriz anterior.`, 'step']];
+            if (T.n <= 6) {
+                // detalle fila a fila, como en el tablero: para cada i, las comparaciones variando k
+                st.rows.forEach(r => {
+                    if (r.skippedRow) { logs.push([`i = ${L[r.i]} = j: la fila no cambia (se omite, propuesta de clase).`, 'discard']); return; }
+                    if (!r.cmps.length) { logs.push([`i = ${L[r.i]}: todas las comparaciones se omiten (∞ o i = k / k = j).`, 'discard']); return; }
+                    const parts = r.cmps.map(c => `d(${L[r.i]},${L[j]}) + d(${L[j]},${L[c.k]}) = ${U.fmt(c.a)} + ${U.fmt(c.b)} = ${U.fmt(c.s)} &lt; ${U.fmt(c.old)}? ${c.ok ? '<b>sí → cambia</b>' : 'no'}`);
+                    const ch = r.cmps.filter(c => c.ok).length;
+                    logs.push([`i = ${L[r.i]}: ${parts.join(' · ')}${ch ? '' : ' ⇒ la fila pasa igual'}`, ch ? 'found' : 'compare']);
+                });
+            } else {
+                st.updates.slice(0, 40).forEach(u => logs.push([`d(${L[u.i]},${L[j]}) + d(${L[j]},${L[u.k]}) = ${U.fmt(u.a)} + ${U.fmt(u.b)} = ${U.fmt(u.a + u.b)} &lt; d(${L[u.i]},${L[u.k]}) = ${U.fmt(u.old)} → actualizar`, 'compare']));
+                if (st.updates.length > 40) logs.push([`… y ${st.updates.length - 40} más.`, 'info']);
+            }
             frames.push({ draw: () => { drawStep(g, T, s); ed.setOverlay({ nodeCls: { [T.ids[j]]: 'c-current' } }); }, logs });
         }
         const Dn = T.steps[T.steps.length - 1].D;
         const neg = U.range(T.n).filter(i => Dn[i][i] < 0);
         const totalCmp = U.sum(T.steps.map(s => s.compared));
         frames.push({ draw: () => { drawStep(g, T, T.steps.length - 1); if (neg.length) { ui.mat.prepend(UI.alert('inconsistency', 'Ciclo de peso negativo', `d(v,v) &lt; 0 para ${neg.map(i => L[i]).join(', ')}: las distancias mínimas no están definidas.`)); } },
-            log: `D⁽${U.sup(T.n)}⁾ es la matriz de distancias mínimas. Comparaciones totales: ${totalCmp}${ui.opt.checked ? ` (sin optimización serían ${T.n ** 3})` : ''}.`, type: neg.length ? 'error' : 'found', status: neg.length ? 'Hay un ciclo negativo.' : `Floyd terminado: ${T.n} matrices calculadas. Consulte rutas abajo.`, statusType: neg.length ? 'error' : 'found' });
+            log: `D⁽${U.sup(T.n)}⁾ es la matriz de distancias mínimas. Comparaciones totales: ${totalCmp}${ui.mode.value !== 'none' ? ` (sin optimización serían n³ = ${T.n ** 3})` : ` (= n³; el algoritmo hace todas las iteraciones)`}.`, type: neg.length ? 'error' : 'found', status: neg.length ? 'Hay un ciclo negativo.' : `Floyd terminado: ${T.n + 1} matrices (D⁽⁰⁾ … D⁽${U.sup(T.n)}⁾), ${totalCmp} comparaciones. Consulte rutas abajo.`, statusType: neg.length ? 'error' : 'found' });
         Sim.load(frames, { base: () => { drawStep(g, T, 0); ed.clearOverlay(); } });
         GUI.refresh(ui.qa, g); GUI.refresh(ui.qb, g);
     }
@@ -1020,11 +1079,11 @@ App.register('g-floyd', (() => {
     return {
         run,
         mount({ controls, stage }) {
-            ui.opt = h('input', { type: 'checkbox', checked: true });
+            ui.mode = UI.select([['none', 'Sin optimización (n³, como en clase)'], ['diag', 'Omitir fila i = j (propuesta de clase)'], ['full', 'Omitir i = j, k = j, i = k y ∞']], 'none');
             ui.qa = UI.select([], ''); ui.qb = UI.select([], '');
-            controls.append(h('label', { class: 'check-wrapper' }, ui.opt, h('span', { text: 'Optimización (omitir i = j / k = j / ∞)' })), UI.btn('Ejecutar Floyd', run, 'btn-primary'), UI.sep(), UI.field('Camino de', ui.qa), UI.field('a', ui.qb), UI.btn('Mostrar', query));
+            controls.append(UI.field('Comparaciones:', ui.mode), UI.btn('Ejecutar Floyd', run, 'btn-primary'), UI.sep(), UI.field('Camino de', ui.qa), UI.field('a', ui.qb), UI.btn('Mostrar', query));
             const top = h('div'); stage.appendChild(top);
-            ed = new GraphEditor(top, { preset: 'floyd', presets: ['floyd', 'dijkstra', 'dijkstra-dirigido', 'bellman-clase', 'mst'], forceWeighted: true, height: 340, onChange: g => { last = null; GUI.refresh(ui.qa, g); GUI.refresh(ui.qb, g); } });
+            ed = new GraphEditor(top, { preset: 'floyd-clase', presets: ['floyd-clase', 'floyd', 'fig12', 'dijkstra', 'dijkstra-dirigido', 'bellman-clase', 'mst'], height: 340, onChange: g => { last = null; GUI.refresh(ui.qa, g); GUI.refresh(ui.qb, g); } });
             GUI.refresh(ui.qa, ed.getGraph()); GUI.refresh(ui.qb, ed.getGraph());
             ui.mat = h('div', { class: 'stage-col' }); stage.appendChild(ui.mat);
         },

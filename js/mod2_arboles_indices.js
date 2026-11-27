@@ -126,7 +126,7 @@ App.register('bst', (() => {
             ui.trav = UI.select([['inorder', 'Inorden'], ['preorder', 'Preorden'], ['postorder', 'Postorden']], 'inorder');
             controls.append(
                 h('div', { class: 'ctrl-row' }, UI.field('Operación:', ui.op), UI.field('Clave(s):', ui.keys), UI.btn('Ejecutar', run, 'btn-primary'), UI.field('Eliminar con:', ui.del)),
-                h('div', { class: 'ctrl-row' }, UI.field('Recorrido:', ui.trav), UI.btn('Recorrer', traverse), UI.btn('Vaciar', () => { root = null; nid = 0; draw(null); Sim.clear(); }), UI.btn('Preset clase', () => loadPreset(preset)), UI.btn('🎲 Aleatorio', () => loadPreset(randomSortedArray(10).sort(() => Math.random() - .5)))));
+                h('div', { class: 'ctrl-row' }, UI.field('Recorrido:', ui.trav), UI.btn('Recorrer', traverse), UI.btn('Vaciar', () => { root = null; nid = 0; draw(null); Sim.clear(); }), UI.btn('Preset clase', () => loadPreset(preset)), UI.btn('Aleatorio', () => loadPreset(randomSortedArray(10).sort(() => Math.random() - .5)))));
             ui.tree = h('div', { class: 'table-wrap' }); ui.trav_out = h('div', { class: 'traversal-out' }); ui.info = h('div');
             stage.append(ui.tree, ui.trav_out, ui.info);
             root = null; nid = 0; draw(null);

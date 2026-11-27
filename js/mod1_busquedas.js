@@ -76,7 +76,7 @@ App.register('secuencial', (() => {
             controls.append(
                 UI.field('Arreglo A:', ui.arr), UI.field('Tipo:', ui.mode), UI.field('Clave k:', ui.key),
                 UI.btn('Buscar', run, 'btn-primary'),
-                UI.btn('🎲 Aleatorio', () => { const a = randomSortedArray(10); if (ui.mode.value === 'des') a.sort(() => Math.random() - .5); ui.arr.value = a.join(', '); ui.key.value = a[Math.floor(Math.random() * a.length)]; readInputs(); base(); Sim.clear(); }),
+                UI.btn('Aleatorio', () => { const a = randomSortedArray(10); if (ui.mode.value === 'des') a.sort(() => Math.random() - .5); ui.arr.value = a.join(', '); ui.key.value = a[Math.floor(Math.random() * a.length)]; readInputs(); base(); Sim.clear(); }),
                 UI.btn('Preset clase', () => { ui.arr.value = '3, 8, 12, 16, 21, 27, 33, 40, 48, 55'; ui.key.value = 30; readInputs(); base(); Sim.clear(); }));
             ui.view = h('div');
             stage.appendChild(ui.view);
@@ -125,7 +125,7 @@ App.register('binaria', (() => {
             ui.arr = UI.text(S.arr.join(', '), { width: '300px' });
             ui.key = UI.num(23, { width: '80px' });
             controls.append(UI.field('Arreglo (se ordena):', ui.arr), UI.field('Clave k:', ui.key), UI.btn('Buscar', run, 'btn-primary'),
-                UI.btn('🎲 Aleatorio', () => { const a = randomSortedArray(12); ui.arr.value = a.join(', '); ui.key.value = a[Math.floor(Math.random() * a.length)]; read(); base(); Sim.clear(); }));
+                UI.btn('Aleatorio', () => { const a = randomSortedArray(12); ui.arr.value = a.join(', '); ui.key.value = a[Math.floor(Math.random() * a.length)]; read(); base(); Sim.clear(); }));
             ui.view = h('div');
             stage.appendChild(ui.view);
             side.appendChild(UI.card('Análisis', UI.kv([['Mejor caso', '1'], ['Peor caso', '⌊log₂ n⌋ + 1'], ['Recurrencia', 'T(n) = T(n/2) + 1']])));

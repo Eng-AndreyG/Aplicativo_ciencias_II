@@ -83,8 +83,8 @@ const M4 = {
         if (g.n > n) { stage.appendChild(UI.alert('warn', 'Grafo demasiado grande', `La enumeración exhaustiva está limitada a ${n} vértices.`)); return true; }
         return false;
     },
-    fmtSign: x => (x > 0 ? (x === 1 ? '1' : String(x)) : x < 0 ? '−' + Math.abs(x) : '0'),
-    signCls: (x) => x > 0 ? 'cell-one' : x < 0 ? 'cell-neg' : '',
+    fmtSign: x => (typeof x === 'string' ? x : x > 0 ? (x === 1 ? '1' : String(x)) : x < 0 ? '−' + Math.abs(x) : '0'),
+    signCls: (x) => typeof x === 'string' ? 'cell-one' : x > 0 ? 'cell-one' : x < 0 ? 'cell-neg' : '',
 };
 
 /* =====================================================================
@@ -177,14 +177,24 @@ const Matrices = {
         const A = V.map(n => E.map(e => { if (e.u === e.v) return e.u === n.id ? (dir ? 0 : 1) : 0; if (!dir) return (e.u === n.id || e.v === n.id) ? 1 : 0; return e.u === n.id ? 1 : e.v === n.id ? -1 : 0; }));
         // 2. Adyacencia de vértices
         const X = V.map(a => V.map(b => E.filter(e => (e.u === a.id && e.v === b.id) || (!dir && e.v === a.id && e.u === b.id && e.u !== e.v)).length));
+        // 2′. Adyacencia de vértices con el criterio de clase para dirigidos: 1 si la arista SALE de vᵢ hacia vⱼ, −1 si LLEGA a vᵢ desde vⱼ.
+        const Xs = V.map(a => V.map(b => {
+            if (a.id === b.id) return 0;
+            const out = E.filter(e => e.u === a.id && e.v === b.id).length, inn = E.filter(e => e.u === b.id && e.v === a.id).length;
+            if (out && inn) return `${out > 1 ? out : 1}, −${inn > 1 ? inn : 1}`;
+            return out ? out : inn ? -inn : 0;
+        }));
         // 3. Adyacencia de aristas
         const EA = E.map(ei => E.map(ej => {
             if (ei.id === ej.id) return 0;
             const shared = [ei.u, ei.v].filter(x => x === ej.u || x === ej.v);
             if (!shared.length) return 0;
             if (edgeAdjMode !== 'dir' || !dir) return 1;
+            // Criterio de clase: se mira el vértice que las hace adyacentes. Ambas salen → 1; ambas llegan → −1;
+            // una sale y la otra llega → se anotan los dos valores (el de eᵢ y el de eⱼ), p. ej. «−1, 1».
             const v = shared[0];
-            return ei.u === v ? 1 : -1;
+            const si = ei.u === v ? 1 : -1, sj = ej.u === v ? 1 : -1;
+            return si === sj ? si : `${si > 0 ? '1' : '−1'}, ${sj > 0 ? '1' : '−1'}`;
         }));
         // 4. Circuitos (todos), orientados en sentido horario
         const ac = GA.allCircuits(g, T).circuits;
@@ -204,7 +214,7 @@ const Matrices = {
         const P = X.map(r => r.map(x => (x > 0 ? 1 : 0)));
         const n = V.length;
         for (let k = 0; k < n; k++) for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (P[i][k] && P[k][j]) P[i][j] = 1;
-        return { V, E, A, X, EA, B, ac, Bf, fc, C, cs, Cf, fcs, P, chords, branches, colOrder };
+        return { V, E, A, X, Xs, EA, B, ac, Bf, fc, C, cs, Cf, fcs, P, chords, branches, colOrder };
     },
     /** Caminos simples entre x e y (matriz de caminos de Deo). */
     simplePaths(g, x, y, limit = 60) {
@@ -248,8 +258,17 @@ App.register('g-matrices', (() => {
         const CcEqBtT = Cc.every((r, i) => r.every((x, j) => dir ? x === -(Bt[j] ? Bt[j][i] : 0) : x === (Bt[j] ? Bt[j][i] : 0)));
         const tabs = [
             { id: 'inc', label: '1. Incidencia', render: c => { c.appendChild(mat(R.A, VL, EL, `A(G) — ${dir ? '+1 sale, −1 entra, 0 no incide' : '1 incide, 0 no incide'}`)); c.appendChild(h('div', { class: 'hint', text: dir ? 'Cada columna suma 0 (una salida y una entrada).' : 'Cada columna tiene exactamente dos 1; cada fila suma el grado del vértice.' })); } },
-            { id: 'adj', label: '2. Adyacencia de vértices', render: c => c.appendChild(mat(R.X, VL, VL, `X(G) — ${dir ? 'xᵢⱼ = nº de aristas de vᵢ a vⱼ' : 'xᵢⱼ = nº de aristas entre vᵢ y vⱼ (simétrica)'}`)) },
-            { id: 'eadj', label: '3. Adyacencia de aristas', render: c => { c.appendChild(mat(R.EA, EL, EL, ui.eam.value === 'dir' && dir ? 'Respecto al vértice compartido: +1 si eᵢ sale de él, −1 si eᵢ entra' : '1 si eᵢ y eⱼ comparten un vértice')); } },
+            { id: 'adj', label: '2. Adyacencia de vértices', render: c => {
+                if (dir && ui.xam.value === 'clase') { c.appendChild(mat(R.Xs, VL, VL, 'X(G) — criterio de clase: 1 si la arista sale de vᵢ hacia vⱼ, −1 si llega a vᵢ desde vⱼ, 0 si no son adyacentes (diagonal 0: sin bucles)')); c.appendChild(h('div', { class: 'hint', text: 'Es antisimétrica: xⱼᵢ = −xᵢⱼ. La teoría solo exige «comparten una arista»; este criterio agrega el sentido.' })); }
+                else c.appendChild(mat(R.X, VL, VL, `X(G) — ${dir ? 'xᵢⱼ = nº de aristas de vᵢ a vⱼ' : 'xᵢⱼ = 1 si vᵢ y vⱼ comparten una arista (nº de aristas si hay múltiples); simétrica, diagonal 0 sin bucles'}`));
+            } },
+            { id: 'pow', label: 'Potencias Xᵏ', render: c => {
+                const kSel = UI.select(U.range(Math.max(2, Math.min(6, g.n)), 1).map(k => [k, 'k = ' + k]), Math.min(2, g.n)), out = h('div');
+                const draw = () => { const k = +kSel.value; let P = R.X.map(r => r.slice()); for (let i = 1; i < k; i++) P = M4.mul(P, R.X[0] ? R.X[0].map((_, j) => R.X.map(r => r[j])) : []); out.innerHTML = ''; out.appendChild(mat(P, VL, VL, `X${U.sup(k)} — entrada (i, j) = nº de recorridos de longitud ${k} de vᵢ a vⱼ`, { fmt: x => String(x), cellCls: (i, j, x) => x ? 'cell-hl' : '' })); if (k === 2 && !dir) out.appendChild(h('div', { class: 'hint', text: 'En no dirigido simple, la diagonal de X² es el grado de cada vértice.' })); };
+                kSel.addEventListener('change', draw);
+                c.append(h('div', { class: 'filter-bar' }, UI.field('Potencia:', kSel)), out); draw();
+            } },
+            { id: 'eadj', label: '3. Adyacencia de aristas', render: c => { c.appendChild(mat(R.EA, EL, EL, ui.eam.value === 'dir' && dir ? 'Criterio de clase (vértice compartido): 1 ambas salen, −1 ambas llegan, «s(eᵢ), s(eⱼ)» si una sale y la otra llega' : '1 si eᵢ y eⱼ comparten un vértice, 0 si no (diagonal 0)')); if (ui.eam.value === 'dir' && dir) c.appendChild(h('div', { class: 'hint', text: 'En clase se aclaró que la teoría solo dice «comparten el mismo vértice»; este criterio con signos es opcional y se usa cuando se pide el sentido.' })); } },
             { id: 'circ', label: `4. Circuitos (${R.B.length})`, render: c => { c.appendChild(rowClick(mat(R.B, R.ac.map((_, i) => 'C' + U.sub(i + 1)), EL, `B(G) — ${dir ? 'recorrido en sentido HORARIO: +1 si la arista va en el sentido del recorrido, −1 si va en contra' : '1 si la arista pertenece al circuito'}`), i => hlEdges(R.ac[i]))); c.appendChild(h('div', { class: 'hint', text: 'Clic en una fila para resaltar el circuito.' })); } },
             { id: 'fcirc', label: '5. Circuitos fundamentales', render: c => { c.appendChild(rowClick(mat(R.Bf, R.fc.map(f => 'Cf(' + g.edge(f.chord).name + ')'), CO, `B_f = [ I_μ | B_t ] — columnas: cuerdas (${nu}) | ramas${dir ? ' · orientación de la cuerda' : ''}`, { colCls: j => j < nu ? 'th-pivot' : null }), i => hlEdges(R.fc[i].edges))); } },
             { id: 'cut', label: `6. Conjuntos de corte (${R.C.length})`, render: c => { c.appendChild(rowClick(mat(R.C, R.cs.map((_, i) => 'K' + U.sub(i + 1)), EL, `C(G) — ${dir ? 'orientado del lado que contiene al primer vértice: +1 sale de ese lado, −1 entra' : '1 si la arista pertenece al corte'}`), i => hlEdges(R.cs[i].edges))); } },
@@ -293,7 +312,7 @@ App.register('g-matrices', (() => {
         const frames = [];
         frames.push({ draw: () => { active = 'inc'; render(); }, log: `Matriz de incidencia ${g.n}×${g.m}: ${R.V.map((n, i) => `${n.label}: [${R.A[i].map(M4.fmtSign).join(' ')}]`).join(' · ')}`, type: 'step' });
         R.E.forEach((e, j) => frames.push({ draw: () => { const ov = { edgeCls: { [e.id]: 'c-hl' }, nodeCls: { [e.u]: 'c-current', [e.v]: 'c-current' } }; ed.setOverlay(ov); }, log: `Columna ${e.name} (${g.edgeStr(e)}): ${g.directed ? `+1 en ${g.label(e.u)} (sale), −1 en ${g.label(e.v)} (entra)` : `1 en ${g.label(e.u)} y en ${g.label(e.v)}`}.`, type: 'compare' }));
-        const names = { adj: '2. Matriz de adyacencia de vértices X(G)', eadj: '3. Matriz de adyacencia de aristas', circ: `4. Matriz de circuitos B(G): ${R.B.length} circuitos`, fcirc: `5. Matriz de circuitos fundamentales B_f: ${R.Bf.length} filas (= nulidad)`, cut: `6. Matriz de conjuntos de corte C(G): ${R.C.length} cortes`, fcut: `7. Matriz de cortes fundamentales C_f: ${R.Cf.length} filas (= rango)`, path: '8. Matriz camino P(G) (alcanzabilidad)', list: 'Lista de adyacencia en memoria', rel: 'Relaciones entre matrices (rangos, B·Aᵀ, B·Cᵀ, B_f, C_f)' };
+        const names = { adj: '2. Matriz de adyacencia de vértices X(G)', pow: 'Potencias de la matriz de adyacencia (recorridos de longitud k)', eadj: '3. Matriz de adyacencia de aristas', circ: `4. Matriz de circuitos B(G): ${R.B.length} circuitos`, fcirc: `5. Matriz de circuitos fundamentales B_f: ${R.Bf.length} filas (= nulidad)`, cut: `6. Matriz de conjuntos de corte C(G): ${R.C.length} cortes`, fcut: `7. Matriz de cortes fundamentales C_f: ${R.Cf.length} filas (= rango)`, path: '8. Matriz camino P(G) (alcanzabilidad)', list: 'Lista de adyacencia en memoria', rel: 'Relaciones entre matrices (rangos, B·Aᵀ, B·Cᵀ, B_f, C_f)' };
         Object.keys(names).forEach(id => frames.push({ draw: () => { active = id; ed.clearOverlay(); render(); }, log: names[id], type: 'step' }));
         Sim.load(frames, { base: () => { active = 'inc'; render(); } });
     }
@@ -303,9 +322,11 @@ App.register('g-matrices', (() => {
             const top = h('div'); stage.appendChild(top);
             picker = M4.treePicker(() => ed.getGraph(), () => render());
             ui.dir = UI.select([['u', 'No dirigido (0, 1)'], ['d', 'Dirigido (+1 sale, −1 entra)']], 'u', v => { ed.getGraph().directed = v === 'd'; ed.setGraph(ed.getGraph(), true); });
-            ui.eam = UI.select([['simple', 'Adyacencia de aristas: simple'], ['dir', 'Adyacencia de aristas: dirigida']], 'simple', () => render());
-            controls.append(UI.field('Modo:', ui.dir), ui.eam, UI.field('Árbol T:', picker.el), UI.btn('Recorrer paso a paso', run, 'btn-primary'));
-            ed = new GraphEditor(top, { preset: 'clase-basico', presets: ['clase-basico', 'k4', 'dirigido', 'mst-pequeno', 'articulacion'], allowDirected: false, height: 340, showNames: true, onChange: g => { ui.dir.value = g.directed ? 'd' : 'u'; picker.refresh(); render(); } });
+            ui.eam = UI.select([['simple', 'Adyacencia de aristas: 0/1'], ['dir', 'Adyacencia de aristas: con signos (clase)']], 'dir', () => render());
+            ui.xam = UI.select([['clase', 'Adyacencia de vértices: ±1 (clase)'], ['count', 'Adyacencia de vértices: conteo']], 'clase', () => render());
+            controls.append(UI.field('Modo:', ui.dir), ui.xam, ui.eam, UI.field('Árbol T:', picker.el), UI.btn('Recorrer paso a paso', run, 'btn-primary'));
+            ed = new GraphEditor(top, { preset: 'matrices-clase', presets: ['matrices-clase', 'clase-basico', 'k4', 'dirigido', 'mst-pequeno', 'articulacion'], allowDirected: false, height: 340, showNames: true, onChange: g => { ui.dir.value = g.directed ? 'd' : 'u'; picker.refresh(); render(); } });
+            ui.dir.value = ed.getGraph().directed ? 'd' : 'u';
             ui.body = h('div', { class: 'stage-col' }); stage.appendChild(ui.body);
             picker.refresh(); render();
         },
@@ -391,6 +412,56 @@ const Coloring = {
         memo[key] = res;
         return res;
     },
+    /** Clasifica un grafo pequeño dado por (n, aristas sobre 0..n−1) para los atajos de la reducción. */
+    kindOf(n, E) {
+        const m = E.length, deg = U.range(n).map(i => E.filter(e => e[0] === i || e[1] === i).length);
+        if (!m) return { kind: `nulo N${U.sub(n)}`, poly: Poly.pow([0, 1], n), f: `k${U.sup(n)}` };
+        const g2 = new Graph(); U.range(n).forEach(i => g2.addNode(String(i))); E.forEach(([a, b]) => g2.addEdge(a + 1, b + 1));
+        const conn = GA.isConnected(g2);
+        if (conn && m === n - 1) return { kind: n === m + 1 && deg.every(d => d <= 2) ? `lineal (árbol) de ${n} vértices` : `árbol de ${n} vértices`, poly: Poly.mul([0, 1], Poly.pow([-1, 1], n - 1)), f: `k(k−1)${U.sup(n - 1)}` };
+        if (m === n * (n - 1) / 2) return { kind: `completo K${U.sub(n)}`, poly: Poly.falling(n), f: `k!/(k−${n})!` };
+        if (conn && m === n && deg.every(d => d === 2)) return { kind: `cíclico C${U.sub(n)}`, poly: Poly.add(Poly.pow([-1, 1], n), Poly.mul([n % 2 ? -1 : 1], [-1, 1])), f: `(k−1)${U.sup(n)} ${n % 2 ? '−' : '+'} (k−1)` };
+        return null;
+    },
+    /**
+     * Árbol de reducción por deleción-contracción P(G) = P(G − e) − P(G / e), deteniéndose en grafos notables
+     * (nulo, árbol/lineal, completo, cíclico). labels: nombres de los vértices (al contraer se concatenan).
+     */
+    dcTree(n, edges, labels, budget = { left: 31 }) {
+        const E = Array.from(new Set(edges.map(([a, b]) => (a < b ? a + '-' + b : b + '-' + a)))).map(s => s.split('-').map(Number)).filter(([a, b]) => a !== b);
+        const node = { n, m: E.length, labels };
+        budget.left--;
+        const k = Coloring.kindOf(n, E);
+        if (k) return Object.assign(node, { kind: k.kind, f: k.f, poly: k.poly });
+        if (budget.left <= 0) return Object.assign(node, { kind: 'subproblema (sin expandir)', poly: Coloring.polyDC(n, E) });
+        const [a, b] = E[0];
+        const del = E.slice(1);
+        const con = E.slice(1).map(([x, y]) => [x === b ? a : x, y === b ? a : y]).map(([x, y]) => [x > b ? x - 1 : x, y > b ? y - 1 : y]);
+        const lc = labels.slice(); lc[a] = labels[a] + labels[b]; lc.splice(b, 1);
+        const L = Coloring.dcTree(n, del, labels, budget), R = Coloring.dcTree(n - 1, con, lc, budget);
+        return Object.assign(node, { edge: `${labels[a]}–${labels[b]}`, poly: Poly.sub(L.poly, R.poly), children: [L, R] });
+    },
+    /**
+     * Método del tablero: se etiquetan los vértices uno a uno; cada vértice recibe k − (nº de vecinos ya etiquetados)
+     * (raíz k, hijos k−1, …). Orden: búsqueda de máxima cardinalidad (siempre el vértice con más vecinos etiquetados).
+     * Es EXACTO si los vecinos ya etiquetados de cada vértice son adyacentes entre sí (grafo cordal).
+     */
+    classMethod(nb, readOrder) {
+        const n = nb.length, done = new Set(), steps = [];
+        let exact = true;
+        while (done.size < n) {
+            let best = -1, v = -1;
+            readOrder.forEach(i => { if (done.has(i)) return; const c = [...nb[i]].filter(w => done.has(w)).length; if (c > best) { best = c; v = i; } });
+            const prevNb = [...nb[v]].filter(w => done.has(w));
+            const clique = prevNb.every((x, i) => prevNb.slice(i + 1).every(y => nb[x].has(y)));
+            if (!clique) exact = false;
+            steps.push({ v, c: prevNb.length, prevNb, clique });
+            done.add(v);
+        }
+        let poly = [1];
+        steps.forEach(s => { poly = Poly.mul(poly, [-s.c, 1]); });
+        return { steps, poly, exact };
+    },
     /** Número de particiones de S en j conjuntos independientes (verificación exacta). */
     partitions(nb) {
         const n = nb.length, full = (1 << n) - 1;
@@ -472,7 +543,8 @@ App.register('g-coloreado', (() => {
                         GA.isComplete(g) ? prop(`Completo K${U.sub(g.n)}: n ${g.n % 2 ? 'impar ⇒ X′ = n' : 'par ⇒ X′ = n − 1'}`, ec.k === (g.n % 2 ? g.n : g.n - 1)) : null,
                         GA.isCycleGraph(g) ? prop(`Cíclico C${U.sub(g.n)}: ${g.n % 2 ? 'impar ⇒ X′ = 3' : 'par ⇒ X′ = 2'}`, ec.k === (g.n % 2 ? 3 : 2)) : null,
                     ].filter(Boolean)),
-                    h('div', { class: 'hint', text: 'Se calcula coloreando de forma exacta el grafo de líneas L(G) (aristas adyacentes ⇒ colores distintos).' }));
+                    h('div', { class: 'hint', text: 'Se calcula coloreando de forma exacta el grafo de líneas L(G) (aristas adyacentes ⇒ colores distintos).' }),
+                    GA.isComplete(g) && g.n >= 3 ? UI.alert('info', 'Nota sobre la propiedad de grafos completos', `En clase se enunció con la paridad del número de aristas (K₃: 3 aristas ⇒ Δ+1; K₄: 6 aristas ⇒ Δ). La condición que se cumple siempre es la paridad del número de VÉRTICES: K₅ tiene 10 aristas (par) y aun así X′(K₅) = 5 = Δ + 1. Aquí: n = ${g.n}, |A| = ${g.m}, X′ = ${ec.k}.`) : null);
             } },
             { id: 'p', label: 'Clases cromáticas', render: c => {
                 ed.setOverlay(vOverlay(vc.col));
@@ -484,9 +556,39 @@ App.register('g-coloreado', (() => {
             { id: 'poly', label: 'Polinomio cromático', render: c => {
                 ed.setOverlay(vOverlay(vc.col));
                 const ok = Poly.str(poly) === Poly.str(polyCheck);
+                // Forma factorizada (raíces enteras 0..n) + resto
+                const factored = (() => {
+                    let p = poly.slice(); const fs = [];
+                    for (let r = 0; r <= g.n && p.length > 1; r++) { while (p.length > 1 && Math.abs(Poly.evalAt(p, r)) < 1e-9) { const q = new Array(p.length - 1).fill(0); let carry = 0; for (let i = p.length - 1; i >= 1; i--) { carry = p[i] + carry * r; q[i - 1] = carry; } p = Poly.trim(q); fs.push(r); } }
+                    const cnt = {}; fs.forEach(r => cnt[r] = (cnt[r] || 0) + 1);
+                    const body = Object.keys(cnt).map(Number).sort((a, b) => a - b).map(r => (r === 0 ? 'k' : `(k−${r})`) + (cnt[r] > 1 ? U.sup(cnt[r]) : '')).join('');
+                    const rest = Poly.str(p);
+                    return (body || '') + (rest === '1' ? '' : `·(${rest})`);
+                })();
+                // Método del tablero (k, k−1, k−2 …)
+                const read = Ordinal.readingOrder(g, S.ids).map(id => S.ix[id]);
+                const CM = Coloring.classMethod(nb, read);
+                const cmOv = () => { const ov = { nodeAnn: {}, nodeCls: {} }; CM.steps.forEach((s, i) => { ov.nodeAnn[S.ids[s.v]] = [{ text: s.c ? `k−${s.c}` : 'k', cls: s.clique ? 'ann-green' : 'ann-peach' }, { text: `#${i + 1}`, cls: '' }]; if (!s.clique) ov.nodeCls[S.ids[s.v]] = 'c-bad'; }); ed.setOverlay(ov); };
+                const cmSame = Poly.str(CM.poly) === Poly.str(poly);
+                const cmBox = h('div', { class: 'card' },
+                    h('div', { class: 'card-title', text: 'Método del tablero: etiquetar con k, k−1, k−2, …' }),
+                    h('div', { class: 'hint', text: 'Se etiqueta un vértice a la vez; cada vértice recibe k menos el número de vecinos ya etiquetados (el árbol: raíz k y todos los demás k−1). Clic para verlo sobre el grafo.' }),
+                    UI.table(['Orden', 'Vértice', 'Vecinos ya etiquetados', 'Factor', '¿Vecinos adyacentes entre sí?'], CM.steps.map((s, i) => [i + 1, g.label(S.ids[s.v]), U.setStr(s.prevNb.map(w => g.label(S.ids[w]))), s.c ? `k − ${s.c}` : 'k', s.clique ? '✔' : '✘'])),
+                    h('div', { class: 'poly', text: 'Producto = ' + CM.steps.map(s => s.c ? `(k−${s.c})` : 'k').join('') + ' = ' + Poly.str(CM.poly) }),
+                    cmSame ? UI.alert('ok', 'Coincide con el polinomio exacto', `En X(G) = ${vc.k}: ${Poly.evalAt(CM.poly, vc.k)} formas de colorear.`)
+                        : UI.alert('inconsistency', 'El método del tablero NO es exacto para este grafo', `Algún vértice tiene vecinos etiquetados que no son adyacentes entre sí (marcados en rojo): esos vecinos pueden repetir color y el factor k − c cuenta de menos. Con k = ${vc.k} el método da ${Poly.evalAt(CM.poly, vc.k)} pero el valor exacto es P(${vc.k}) = ${Poly.evalAt(poly, vc.k)}. ${GA.isCycleGraph(g) ? `Para C${U.sub(g.n)} la fórmula correcta es (k−1)${U.sup(g.n)} ${g.n % 2 ? '−' : '+'} (k−1).` : ''} Use la deleción-contracción.`),
+                    UI.btn('Ver etiquetas k − c en el grafo', cmOv, 'btn-small'));
+                // Árbol de deleción-contracción
+                const tree = Coloring.dcTree(g.n, g.edges.map(e => [S.ix[e.u], S.ix[e.v]]), S.ids.map(id => g.label(id)));
+                const drawNode = nd => h('li', null,
+                    h('span', { class: 'mono', html: `${nd.edge ? `G (n=${nd.n}, m=${nd.m}) · e = ${esc(nd.edge)}` : `<b>${esc(nd.kind)}</b> (n=${nd.n}, m=${nd.m})${nd.f ? ' → ' + nd.f : ''}`} : P = ${Poly.str(nd.poly)}` }),
+                    nd.children ? h('ul', { class: 'dc-tree' }, h('li', null, h('span', { class: 'muted', text: 'G − e (deleción):' }), h('ul', { class: 'dc-tree' }, drawNode(nd.children[0]))), h('li', null, h('span', { class: 'muted', text: 'G / e (contracción):' }), h('ul', { class: 'dc-tree' }, drawNode(nd.children[1])))) : null);
                 c.append(UI.kv([['Tipo detectado', cls.type], ['Fórmula aplicada', cls.formula]]),
                     h('div', { class: 'poly', text: 'P(k) = ' + Poly.str(poly) }),
+                    h('div', { class: 'poly', text: 'Factorizado: P(k) = ' + factored }),
                     dcLog.length ? h('div', { class: 'hint', text: dcLog[0] + ` (subproblemas resueltos: ${Object.keys(memo).length})` }) : null,
+                    cmBox,
+                    h('div', { class: 'card' }, h('div', { class: 'card-title', text: 'Reducción por deleción-contracción: P(G) = P(G − e) − P(G / e)' }), h('div', { class: 'hint', text: 'Cada rama se detiene al llegar a un grafo notable (nulo kⁿ, árbol/lineal k(k−1)ⁿ⁻¹, completo k!/(k−n)!, cíclico).' }), h('ul', { class: 'dc-tree', style: { maxHeight: '360px', overflow: 'auto' } }, drawNode(tree))),
                     UI.table(['k'].concat(U.range(g.n + 2)), [['P(k)'].concat(U.range(g.n + 2).map(k => Poly.evalAt(poly, k)))]),
                     UI.kv([['X(G) = menor k con P(k) &gt; 0', U.range(g.n + 2).find(k => Poly.evalAt(poly, k) > 0)], ['Verificación por particiones Σ aⱼ·k⁽ʲ⁾', ok ? '✔ coincide' : '✘ difiere'], ['Grado = |S|, coef. de kⁿ⁻¹ = −|A|', `${poly.length - 1} = ${g.n}; ${poly[poly.length - 2] || 0} = −${g.m}`], ['Grafo únicamente coloreable', nPart === 1 ? 'Sí (P(X) = X!)' : 'No']]));
             } },
@@ -596,7 +698,7 @@ App.register('g-indep', (() => {
                 const pick = s => { const ov = { nodeCls: {} }; U.maskToIdx(s.m, V.n).forEach(i => ov.nodeCls[V.ids[i]] = 'c-perm'); ed.setOverlay(ov); Log.add(`Independiente ${lbl(s.m)}${s.maximum ? ' (máximo)' : s.maximal ? ' (maximal)' : ''}`, 'info'); };
                 const holder = h('div');
                 const build = items => listBox(items.sort((a, b) => b.size - a.size), s => lbl(s.m), s => [s.maximum ? tag('máximo', 'ok') : null, s.maximal ? tag('maximal', 'blue') : null, tag('|I|=' + s.size, '')], pick);
-                c.append(UI.kv([['Número de independencia α(G)', `<b>${V.alpha}</b>`], ['Conjuntos independientes (no vacíos)', V.indep.length], ['Maximales', V.indep.filter(s => s.maximal).length], ['Máximos', V.indep.filter(s => s.maximum).length]]),
+                c.append(UI.kv([['Número de independencia α(G) (coef. de estabilidad interna β(G))', `<b>${V.alpha}</b> = tamaño del mayor conjunto independiente`], ['Conjuntos independientes (no vacíos)', V.indep.length], ['Maximales', V.indep.filter(s => s.maximal).length], ['Máximos', V.indep.filter(s => s.maximum).length]]),
                     filterBar([['Todos', () => true], ['Maximales', s => s.maximal], ['Máximos', s => s.maximum]], f => filtered(V.indep, f, holder, build)), holder);
                 filtered(V.indep, () => true, holder, build);
             } },
@@ -622,7 +724,7 @@ App.register('g-indep', (() => {
                 const holder = h('div');
                 const build = items => listBox(items.sort((a, b) => a.size - b.size), s => lbl(s.m), s => [s.minimum ? tag('mínimo', 'ok') : null, s.minimal ? tag('minimal', 'blue') : null, s.connected ? tag('conexo', 'peach') : null, s.total ? tag('total', 'peach') : null, s.independent ? tag('independiente', '') : null], pick);
                 const gc = V.dom.filter(s => s.connected), gt = V.dom.filter(s => s.total), gi = V.dom.filter(s => s.independent);
-                c.append(UI.kv([['Número de dominación γ(G)', `<b>${V.gamma}</b>`], ['Conjuntos dominantes', V.dom.length], ['Minimales', V.dom.filter(s => s.minimal).length], ['γ conexo / γ total / γ independiente', `${gc.length ? Math.min(...gc.map(s => s.size)) : '—'} / ${gt.length ? Math.min(...gt.map(s => s.size)) : '— (hay vértices aislados)'} / ${gi.length ? Math.min(...gi.map(s => s.size)) : '—'}`]]),
+                c.append(UI.kv([['Número de dominación γ(G) (cardinal del menor dominante)', `<b>${V.gamma}</b>`], ['Conjuntos dominantes', V.dom.length], ['Minimales', V.dom.filter(s => s.minimal).length], ['γ conexo / γ total / γ independiente', `${gc.length ? Math.min(...gc.map(s => s.size)) : '—'} / ${gt.length ? Math.min(...gt.map(s => s.size)) : '— (hay vértices aislados)'} / ${gi.length ? Math.min(...gi.map(s => s.size)) : '—'}`]]),
                     filterBar([['Todos', () => true], ['Mínimos', s => s.minimum], ['Minimales', s => s.minimal], ['Conexos', s => s.connected], ['Totales', s => s.total], ['Independientes', s => s.independent]], f => filtered(V.dom, f, holder, build)),
                     h('div', { class: 'split-2' }, holder, detail));
                 filtered(V.dom, () => true, holder, build);
@@ -648,7 +750,7 @@ App.register('g-indep', (() => {
         mount({ controls, stage }) {
             controls.append(UI.btn('Resumen paso a paso', run, 'btn-primary'));
             const top = h('div'); stage.appendChild(top);
-            ed = new GraphEditor(top, { preset: 'clase-basico', presets: ['clase-basico', 'c5', 'c6', 'petersen', 'arbol', 'k33', 'cubo', 'bipartito'], forceDirected: false, forceWeighted: false, onChange: render });
+            ed = new GraphEditor(top, { preset: 'cubo-clase', presets: ['cubo-clase', 'indep-clase', 'dominante-clase', 'clase-basico', 'c5', 'c6', 'petersen', 'arbol', 'k33', 'bipartito'], forceDirected: false, forceWeighted: false, showNames: true, onChange: render });
             ui.body = h('div', { class: 'stage-col' }); stage.appendChild(ui.body);
             stage.appendChild(h('div', { class: 'legend' }, h('span', null, h('b', { style: { borderColor: '#2E7D32', background: '#E8F5E9' } }), 'en el conjunto independiente'), h('span', null, h('b', { style: { borderColor: '#A84218', background: '#D96332' } }), 'en el dominante'), h('span', null, h('b', { style: { borderColor: '#1565C0', background: '#E3F2FD' } }), 'dominado')));
             render();
@@ -709,6 +811,7 @@ App.register('g-matching', (() => {
         const nu = Math.max(0, ...all.map(s => s.length));
         const sat = Matching.saturated(g, M);
         const maximal = Matching.isMaximal(g, M), maximum = M.length === nu, perfect = maximum && maximal && sat.size === g.n;
+        const uncovered = g.edges.filter(e => e.u !== e.v && !M.includes(e.id) && !M.some(id => { const f = g.edge(id); return f.u === e.u || f.u === e.v || f.v === e.u || f.v === e.v; }));
         let optimal = null;
         if (g.weighted) {
             const maxs = all.filter(s => s.length === nu);
@@ -723,9 +826,11 @@ App.register('g-matching', (() => {
             ['Saturados / Libres', `${GUI.setLabels(g, Array.from(sat))} / ${GUI.setLabels(g, g.ids().filter(v => !sat.has(v)))}`],
             ['¿Maximal (inextensible)?', maximal ? 'Sí: no se puede agregar ninguna arista' : 'No'],
             ['¿Máximo?', maximum ? `Sí: |M| = ν = ${nu}` : `No: |M| = ${M.length} &lt; ${nu}`],
-            ['¿Perfecto?', perfect ? 'Sí: máximo, maximal y satura todos los vértices' : `No${sat.size !== g.n ? ` (quedan ${g.n - sat.size} libres)` : ''}`],
-            ['¿Óptimo?', optimal ? `${optimal.mine === optimal.best && maximum ? 'Sí' : 'No'} — peso ${ui.opt.value === 'max' ? 'máximo' : 'mínimo'} entre los máximos = ${U.fmt(optimal.best)} (M pesa ${U.fmt(optimal.mine)}): ${optimal.sets.map(s => GUI.edgeSet(g, s)).join(' ')}` : 'Requiere un grafo ponderado (marque “Ponderado”).'],
-        ])));
+            ['Aristas cubiertas', uncovered.length ? `${GUI.edgeSet(g, uncovered.map(e => e.id))} no son adyacentes a M (quedan expuestas)` : 'Toda arista fuera de M es adyacente a una arista de M'],
+            ['¿Perfecto?', perfect ? 'Sí: máximo, maximal y satura TODOS los vértices' : `No${sat.size !== g.n ? ` (quedan ${g.n - sat.size} libres${maximum ? ': ser máximo y maximal no basta, deben saturarse todos los vértices' : ''})` : ''}`],
+            ['¿Óptimo? (definición de clase)', perfect ? 'Sí: es máximo y perfecto (todo pareamiento perfecto es óptimo)' : 'No: óptimo = máximo y perfecto'],
+            optimal ? ['Óptimo por pesos (ponderado)', `${optimal.mine === optimal.best && maximum ? 'Sí' : 'No'} — peso ${ui.opt.value === 'max' ? 'máximo' : 'mínimo'} entre los máximos = ${U.fmt(optimal.best)} (M pesa ${U.fmt(optimal.mine)}): ${optimal.sets.map(s => GUI.edgeSet(g, s)).join(' ')}`] : null,
+        ].filter(Boolean))));
     }
     function run() {
         const g = ed.getGraph();
@@ -733,9 +838,18 @@ App.register('g-matching', (() => {
         const all = SetEnum.edgeSets(g).sets.map(s => s.s).concat([[]]);
         let M = [];
         if (ui.init.value === 'greedy') { const sat = new Set(); g.edges.forEach(e => { if (!sat.has(e.u) && !sat.has(e.v)) { M.push(e.id); sat.add(e.u); sat.add(e.v); } }); }
+        if (ui.init.value === 'given') {
+            const names = ui.m0.value.split(/[\s,;]+/).map(x => x.trim()).filter(Boolean);
+            const bad = names.filter(nm => !g.edges.some(e => e.name === nm));
+            if (bad.length) { ui.alerts.appendChild(UI.alert('error', 'Aristas inexistentes', `No existen las aristas ${U.setStr(bad)} (active «Nombres» para ver los nombres).`)); return Status.set('Revise el pareamiento inicial.', 'error'); }
+            M = names.map(nm => g.edges.find(e => e.name === nm).id);
+            const used = new Set(), clash = [];
+            M.forEach(id => { const e = g.edge(id); [e.u, e.v].forEach(v => { if (used.has(v)) clash.push(g.label(v)); used.add(v); }); });
+            if (clash.length) { ui.alerts.appendChild(UI.alert('inconsistency', 'El conjunto inicial NO es un pareamiento', `Hay aristas adyacentes (comparten ${U.setStr(clash)}): un pareamiento es un conjunto independiente de aristas.`)); return Status.set('El M inicial no es pareamiento.', 'error'); }
+        }
         const frames = [];
         const M0 = M.slice();
-        frames.push({ draw: () => ed.setOverlay(ovFor(g, M0)), log: `Pareamiento inicial M = ${GUI.edgeSet(g, M0) || '∅'} (${ui.init.value === 'greedy' ? 'voraz' : 'vacío'}). Libres: ${GUI.setLabels(g, g.ids().filter(v => !Matching.saturated(g, M0).has(v)))}`, type: 'step' });
+        frames.push({ draw: () => ed.setOverlay(ovFor(g, M0)), log: `Pareamiento inicial M = ${GUI.edgeSet(g, M0) || '∅'} (${{ greedy: 'voraz', empty: 'vacío', given: 'dado' }[ui.init.value]}). Libres: ${GUI.setLabels(g, g.ids().filter(v => !Matching.saturated(g, M0).has(v)))}`, type: 'step' });
         let it = 0;
         for (;;) {
             const explored = [];
@@ -770,11 +884,12 @@ App.register('g-matching', (() => {
     return {
         run,
         mount({ controls, stage }) {
-            ui.init = UI.select([['empty', 'M inicial vacío'], ['greedy', 'M inicial voraz (maximal)']], 'greedy');
+            ui.init = UI.select([['given', 'M inicial dado'], ['empty', 'M inicial vacío'], ['greedy', 'M inicial voraz (maximal)']], 'given', v => { ui.m0.disabled = v !== 'given'; });
+            ui.m0 = UI.text('b, d, f', { width: '110px' });
             ui.opt = UI.select([['max', 'Óptimo = peso máximo'], ['min', 'Óptimo = peso mínimo']], 'max');
-            controls.append(UI.field('Inicio:', ui.init), ui.opt, UI.btn('Caminos M-aumentados', run, 'btn-primary'), UI.btn('Ver todos los pareamientos', listAll));
+            controls.append(UI.field('Inicio:', ui.init), UI.field('M₀ (nombres):', ui.m0), ui.opt, UI.btn('Caminos M-aumentados', run, 'btn-primary'), UI.btn('Ver todos los pareamientos', listAll));
             const top = h('div'); stage.appendChild(top);
-            ed = new GraphEditor(top, { preset: 'matching', presets: ['matching', 'bipartito', 'k33', 'petersen', 'c5', 'cubo', 'no-simple', 'mst-pequeno'], forceDirected: false, onChange: () => { ui.list.innerHTML = ''; ui.cls.innerHTML = ''; validate(ed.getGraph()); } });
+            ed = new GraphEditor(top, { preset: 'camino-p8', presets: ['camino-p8', 'cubo-clase', 'indep-clase', 'matching', 'bipartito', 'k33', 'petersen', 'c5', 'no-simple', 'mst-pequeno'], forceDirected: false, showNames: true, onChange: () => { const g = ed.getGraph(); if (ui.m0.value.split(/[\s,;]+/).filter(Boolean).some(nm => !g.edges.some(e => e.name === nm))) ui.m0.value = ''; ui.list.innerHTML = ''; ui.cls.innerHTML = ''; validate(g); } });
             ui.alerts = h('div'); ui.cls = h('div'); ui.list = h('div');
             stage.append(ui.alerts, h('div', { class: 'legend' }, h('span', null, h('i', { style: { borderColor: '#6A1B9A' } }), 'arista de M'), h('span', null, h('i', { style: { borderColor: '#F9A825', borderTopStyle: 'dashed' } }), 'camino alternado / aumentado'), h('span', null, h('b', { style: { borderColor: '#6A1B9A', background: '#EDE7F6' } }), 'saturado'), h('span', null, h('b', { style: { borderColor: '#9E9E9E', borderStyle: 'dashed' } }), 'libre')), h('div', { class: 'split-2' }, ui.cls, ui.list));
             validate(ed.getGraph());

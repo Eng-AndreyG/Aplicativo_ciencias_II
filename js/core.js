@@ -138,9 +138,9 @@ const UI = {
     sep: () => h('span', { class: 'ctrl-sep' }),
     /** Caja de alerta. type: info | warn | error | ok | inconsistency */
     alert(type, title, html) {
-        const icons = { info: 'ℹ', warn: '⚠', error: '⛔', ok: '✔', inconsistency: '⛔' };
+        const icons = { info: 'i', warn: '!', error: '✖', ok: '✔', inconsistency: '✖' };
         return h('div', { class: 'alert alert-' + type },
-            h('div', { class: 'alert-icon', text: icons[type] || 'ℹ' }),
+            h('div', { class: 'alert-icon', text: icons[type] || 'i' }),
             h('div', { class: 'alert-body' }, h('strong', { html: title }), h('div', { html: html || '' })));
     },
     /** Tabla genérica. rows: array de arrays (celdas: string | {html, cls}) */
@@ -394,7 +394,7 @@ const Sim = {
  * ------------------------------------------------------------------- */
 const CATALOG = [
     {
-        id: 'm1', icon: '🔍', title: 'Módulo 1: Búsquedas, Hashing y Estructuras Digitales',
+        id: 'm1', title: 'Módulo 1: Búsquedas, Hashing y Estructuras Digitales',
         short: 'Búsquedas secuencial/binaria, transformación de claves, cubetas dinámicas, funciones hash (decimal y binario), colisiones, árboles digitales, residuos, Huffman, rejilla y árboles 2D.',
         groups: [
             {
@@ -429,7 +429,7 @@ const CATALOG = [
         ]
     },
     {
-        id: 'm2', icon: '🌳', title: 'Módulo 2: Árboles Jerárquicos, Índices y Disco',
+        id: 'm2', title: 'Módulo 2: Árboles Jerárquicos, Índices y Disco',
         short: 'Árboles BST y AVL con rotaciones reales, índices primario (denso/disperso), secundario, multinivel y calculadora de accesos a disco.',
         groups: [
             {
@@ -449,7 +449,7 @@ const CATALOG = [
         ]
     },
     {
-        id: 'm3', icon: '🕸️', title: 'Módulo 3: Grafos — Fundamentos, Operaciones, Expansión y Caminos',
+        id: 'm3', title: 'Módulo 3: Grafos — Fundamentos, Operaciones, Expansión y Caminos',
         short: 'Editor interactivo de G = (S, A), incidencia, grado, articulación, isomorfismo, Euler y Hamilton, operaciones y productos, centro y mediana, árboles de expansión, Bellman, Dijkstra y Floyd.',
         groups: [
             {
@@ -461,7 +461,7 @@ const CATALOG = [
             {
                 title: '3.2 Operaciones y Productos', items: [
                     { id: 'g-operaciones', title: 'Operaciones entre Grafos', badge: '∪ · ∩ · + · ⊕ · fusión', time: 'O(|S| + |A|)', space: 'O(|S| + |A|)', desc: 'Unión, intersección, suma, suma de anillo (diferencia simétrica de aristas), inserción/eliminación de vértices y aristas, fusión de vértices y contracción de aristas.', notes: [] },
-                    { id: 'g-productos', title: 'Productos de Grafos', badge: '□ · × · G₁[G₂]', time: 'O((n₁n₂)²)', space: 'O(n₁n₂ + m)', desc: 'Cartesiano, tensorial y composición. El resultado se dibuja como una sola estructura con vértices (u, v) en cuadrícula.', notes: ['|A(G₁□G₂)| = n₁m₂ + n₂m₁', '|A(G₁×G₂)| = 2m₁m₂'] },
+                    { id: 'g-productos', title: 'Productos de Grafos', badge: '□ · ⊗ · G₁[G₂]', time: 'O((n₁n₂)²)', space: 'O(n₁n₂ + m)', desc: 'Cartesiano, tensorial y composición. El resultado se dibuja como una sola estructura con vértices (u, v) en cuadrícula.', notes: ['|A(G₁□G₂)| = n₁m₂ + n₂m₁', '|A(G₁⊗G₂)| = 2m₁m₂', '|A(G₁[G₂])| = n₁m₂ + n₂²m₁', 'Columnas = G₁, filas = G₂ (formato del taller)'] },
                 ]
             },
             {
@@ -476,15 +476,15 @@ const CATALOG = [
             },
             {
                 title: '3.5 Caminos Mínimos', items: [
-                    { id: 'g-bellman', title: 'Función Ordinal + Bellman', badge: 'λⱼ = mín{λᵢ + d(i, j)}', time: 'O(n + m)', space: 'O(n)', desc: 'Primero etiqueta los vértices con la función ordinal (niveles sin predecesores). Si existe un ciclo dirigido no es posible y Bellman no se ejecuta. Luego calcula λⱼ en orden y reconstruye todas las rutas mínimas en reversa.', notes: ['Solo grafos dirigidos acíclicos'] },
-                    { id: 'g-dijkstra', title: 'Dijkstra (etiquetas [d, n])', badge: 'Temporal · Permanente · Rechazada', time: 'O(n²)', space: 'O(n)', desc: 'Etiqueta cada vértice con [d, n] (distancia acumulada, predecesor). En cada iteración la menor etiqueta temporal se vuelve permanente. Las etiquetas superadas se rechazan (tachadas).', notes: ['Pesos no negativos', 'Admite ciclos dirigidos'] },
-                    { id: 'g-floyd', title: 'Floyd-Warshall', badge: 'D⁽⁰⁾ … D⁽ⁿ⁾', time: 'Θ(n³)', space: 'O(n²)', desc: 'Para cada vértice intermedio j actualiza d(i,k) si d(i,j) + d(j,k) < d(i,k). Muestra las matrices sucesivas con las celdas actualizadas.', notes: ['Optimización: fila/columna j no cambian; si d(i,j) = ∞ se omite la fila i'] },
+                    { id: 'g-bellman', title: 'Función Ordinal + Bellman', badge: 'λⱼ = mín{λᵢ + d(i, j)}', time: 'O(n + m)', space: 'O(n)', desc: 'Paso 1: función ordinal vértice a vértice con un contador i (inicia en 0, 1 o a): primero un vértice sin predecesores; si no hay, uno cuyos predecesores ya estén todos etiquetados (empates: de izquierda a derecha, de arriba hacia abajo). Si existe un ciclo dirigido el grafo no se puede etiquetar y Bellman NO se aplica (inconsistencia). Paso 2: λ₀ = 0 y λⱼ = mín{λᵢ + d(i, j)} en orden ordinal; reconstruye todas las rutas mínimas en reversa.', notes: ['Solo grafos dirigidos sin ciclos (Bellman no retrocede)', 'Bellman y Dijkstra deben dar el mismo resultado'] },
+                    { id: 'g-dijkstra', title: 'Dijkstra (etiquetas [d, n])', badge: 'Temporal · Permanente · Rechazada', time: 'O(n²)', space: 'O(n)', desc: 'Sin matrices, con etiquetas [d, n] (distancia, vértice predecesor). La etiqueta inicial [0, −] es temporal; en cada iteración la temporal de menor valor se vuelve permanente y desde ella se etiquetan los vecinos. Si un vértice tiene dos temporales se deja la menor y la otra se rechaza (punteada). Reporta todas las rutas de costo mínimo.', notes: ['Pesos no negativos', 'Admite ciclos dirigidos (puede avanzar y retroceder)'] },
+                    { id: 'g-floyd', title: 'Floyd-Warshall', badge: 'D⁽⁰⁾ … D⁽ⁿ⁾', time: 'Θ(n³)', space: 'O(n²)', desc: 'Condición de clase: si d(i,j) + d(j,k) < d(i,k) se reemplaza d(i,k). j queda fijo mientras i y k varían de 1 a n (n² comparaciones por matriz, n³ en total: 64 para 4 vértices). Muestra la matriz inicial y las n matrices siguientes, fila a fila, con las celdas que cambian.', notes: ['Sin ponderación explícita cada arista vale 1', 'Propuesta de clase: cuando i = j la fila no cambia'] },
                 ]
             },
         ]
     },
     {
-        id: 'm4', icon: '🧩', title: 'Módulo 4: Cortes, Matrices, Coloreado, Independencia, Dominación, Matching y Envolventes',
+        id: 'm4', title: 'Módulo 4: Cortes, Matrices, Coloreado, Independencia, Dominación, Matching y Envolventes',
         short: 'Circuitos y conjuntos de corte fundamentales, las 7 matrices + matriz camino, coloreado y polinomio cromático, conjuntos independientes y dominantes, pareamientos y envolventes.',
         groups: [
             {
@@ -552,7 +552,7 @@ const App = {
             const panel = h('div', { class: 'panel' }, m.groups.map(g =>
                 h('div', { class: 'subgroup' }, h('h4', { text: g.title }),
                     h('ul', null, g.items.map(it => h('li', null, h('a', { href: '#' + it.id, 'data-id': it.id, text: it.title })))))));
-            const acc = h('button', { class: 'accordion', html: `<span>${m.icon}</span> ${m.title}` });
+            const acc = h('button', { class: 'accordion', text: m.title });
             acc.addEventListener('click', () => App.toggleAccordion(mi));
             nav.appendChild(h('div', { class: 'nav-module' }, acc, panel));
         });
@@ -584,7 +584,6 @@ const App = {
             const first = m.groups[0].items[0].id;
             const count = m.groups.reduce((a, g) => a + g.items.length, 0);
             grid.appendChild(h('div', { class: 'module-card', onclick: () => { App.toggleAccordion(mi, true); location.hash = first; } },
-                h('div', { class: 'card-icon', text: m.icon }),
                 h('h3', { text: m.title }),
                 h('p', { text: m.short }),
                 h('div', { class: 'card-topics' }, m.groups.map(g => h('span', { text: g.title }))),

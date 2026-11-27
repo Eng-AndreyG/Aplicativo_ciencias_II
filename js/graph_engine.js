@@ -353,7 +353,10 @@ const GraphPresets = {
     list: {
         'clase-basico': () => Graph.from({ nodes: [['a', 160, 90], ['b', 360, 60], ['c', 560, 90], ['d', 160, 280], ['e', 360, 310], ['f', 560, 280], ['g', 700, 190]], edges: [['a', 'b'], ['b', 'c'], ['a', 'd'], ['b', 'e'], ['d', 'e'], ['c', 'f'], ['e', 'f'], ['c', 'g'], ['f', 'g']] }),
         'articulacion': () => Graph.from({ nodes: [['1', 120, 100], ['2', 120, 280], ['3', 270, 190], ['4', 430, 190], ['5', 580, 100], ['6', 580, 280], ['7', 720, 190], ['8', 430, 330]], edges: [['1', '2'], ['1', '3'], ['2', '3'], ['3', '4'], ['4', '5'], ['4', '6'], ['5', '6'], ['5', '7'], ['4', '8']] }),
-        'fig12': () => Graph.from({ nodes: [['a', 110, 190], ['b', 240, 80], ['c', 240, 300], ['d', 400, 190], ['e', 560, 80], ['f', 560, 300], ['g', 700, 190], ['h', 400, 340]], edges: [['a', 'b'], ['a', 'c'], ['b', 'd'], ['c', 'd'], ['d', 'e'], ['d', 'f'], ['e', 'g'], ['f', 'g'], ['c', 'h'], ['h', 'f']] }),
+        /* Figura 12 de las notas de clase (sesión de centro/mediana): 4–5:1, 2–4:2, 4–3:8, 2–3:10, 3–5:2, 3–1:4, 2–1:5.
+           Resultado de clase: Σd = 22, 15, 14, 13, 12; e(v) = 7, 5, 5, 7, 6; bicentro {2,3}; radio 5; diámetro 7; mediana {5}. */
+        'fig12': () => Graph.from({ weighted: true, nodes: [['1', 130, 200], ['2', 330, 70], ['3', 330, 320], ['4', 560, 110], ['5', 600, 300]], edges: [['4', '5', 1], ['2', '4', 2], ['4', '3', 8], ['2', '3', 10], ['3', '5', 2], ['3', '1', 4], ['2', '1', 5]] }),
+        'centro-8': () => Graph.from({ nodes: [['a', 110, 190],['b', 240, 80], ['c', 240, 300], ['d', 400, 190], ['e', 560, 80], ['f', 560, 300], ['g', 700, 190], ['h', 400, 340]], edges: [['a', 'b'], ['a', 'c'], ['b', 'd'], ['c', 'd'], ['d', 'e'], ['d', 'f'], ['e', 'g'], ['f', 'g'], ['c', 'h'], ['h', 'f']] }),
         'arbol': () => Graph.from({ nodes: [['a', 400, 50], ['b', 250, 140], ['c', 550, 140], ['d', 160, 240], ['e', 330, 240], ['f', 480, 240], ['g', 630, 240], ['h', 100, 330], ['i', 690, 330]], edges: [['a', 'b'], ['a', 'c'], ['b', 'd'], ['b', 'e'], ['c', 'f'], ['c', 'g'], ['d', 'h'], ['g', 'i']] }),
         'euler': () => Graph.from({ nodes: [['a', 150, 80], ['b', 400, 60], ['c', 650, 80], ['d', 150, 300], ['e', 400, 320], ['f', 650, 300]], edges: [['a', 'b'], ['b', 'c'], ['c', 'f'], ['f', 'e'], ['e', 'd'], ['d', 'a'], ['b', 'd'], ['d', 'f'], ['f', 'b']] }),
         'k4': () => GA.layoutCircle(Graph.from({ nodes: [['1'], ['2'], ['3'], ['4']], edges: [['1', '2'], ['1', '3'], ['1', '4'], ['2', '3'], ['2', '4'], ['3', '4']] })),
@@ -365,11 +368,35 @@ const GraphPresets = {
         'cubo': () => Graph.from({ nodes: [['000', 200, 280], ['001', 420, 280], ['010', 200, 90], ['011', 420, 90], ['100', 330, 330], ['101', 560, 330], ['110', 330, 150], ['111', 560, 150]], edges: [['000', '001'], ['000', '010'], ['000', '100'], ['001', '011'], ['001', '101'], ['010', '011'], ['010', '110'], ['011', '111'], ['100', '101'], ['100', '110'], ['101', '111'], ['110', '111']] }),
         'mst': () => Graph.from({ weighted: true, nodes: [['a', 120, 190], ['b', 280, 70], ['c', 280, 310], ['d', 460, 190], ['e', 620, 70], ['f', 620, 310], ['g', 740, 190]], edges: [['a', 'b', 4], ['a', 'c', 2], ['b', 'c', 3], ['b', 'd', 2], ['c', 'd', 5], ['b', 'e', 6], ['d', 'e', 3], ['d', 'f', 4], ['c', 'f', 7], ['e', 'g', 2], ['f', 'g', 3], ['e', 'f', 5]] }),
         'mst-pequeno': () => Graph.from({ weighted: true, nodes: [['a', 180, 90], ['b', 520, 90], ['c', 180, 300], ['d', 520, 300], ['e', 680, 195]], edges: [['a', 'b', 2], ['a', 'c', 3], ['b', 'c', 2], ['b', 'd', 1], ['c', 'd', 3], ['d', 'e', 4], ['b', 'e', 5]] }),
-        'bellman-clase': () => Graph.from({ directed: true, weighted: true, nodes: [['0', 90, 190], ['1', 250, 80], ['2', 250, 300], ['3', 430, 190], ['4', 590, 300], ['5', 720, 160]], edges: [['0', '1', 1], ['0', '2', 3], ['1', '2', 2], ['1', '3', 4], ['2', '3', 2], ['2', '4', 5], ['3', '4', 1], ['3', '5', 3], ['4', '5', 1]] }),
+        /* Grafo del tablero (clase de función ordinal, Bellman y Dijkstra): vértices ya etiquetados 0..5 por la función ordinal.
+           0→1:2, 0→2:4, 0→3:5, 1→3:1, 1→5:7, 2→4:6, 3→4:1, 4→5:1. Resultado de clase: λ = 0, 2, 4, 3, 4, 5; ruta 0→1→3→4→5 (costo 5). */
+        'bellman-clase': () => Graph.from({ directed: true, weighted: true, nodes: [['0', 90, 200], ['1', 270, 80], ['2', 270, 320], ['3', 430, 200], ['4', 590, 320], ['5', 720, 140]], edges: [['0', '1', 2], ['0', '2', 4], ['0', '3', 5], ['1', '3', 1], ['1', '5', 7], ['2', '4', 6], ['3', '4', 1], ['4', '5', 1]] }),
+        /* Mismo dibujo SIN etiquetar (letras): para aplicar la función ordinal como en el tablero. */
+        'bellman-sin-etiquetar': () => Graph.from({ directed: true, weighted: true, nodes: [['p', 90, 200], ['q', 270, 80], ['r', 270, 320], ['s', 430, 200], ['t', 590, 320], ['u', 720, 140]], edges: [['p', 'q', 2], ['p', 'r', 4], ['p', 's', 5], ['q', 's', 1], ['q', 'u', 7], ['r', 't', 6], ['s', 't', 1], ['t', 'u', 1]] }),
+        'bellman-rutas': () => Graph.from({ directed: true, weighted: true, nodes: [['0', 90, 190], ['1', 250, 80], ['2', 250, 300], ['3', 430, 190], ['4', 590, 300], ['5', 720, 160]], edges: [['0', '1', 1], ['0', '2', 3], ['1', '2', 2], ['1', '3', 4], ['2', '3', 2], ['2', '4', 5], ['3', '4', 1], ['3', '5', 3], ['4', '5', 1]] }),
         'bellman-8': () => Graph.from({ directed: true, weighted: true, nodes: [['1', 80, 190], ['2', 220, 80], ['3', 220, 300], ['4', 380, 60], ['5', 380, 190], ['6', 380, 320], ['7', 560, 140], ['8', 720, 230]], edges: [['1', '2', 3], ['1', '3', 2], ['2', '4', 4], ['2', '5', 2], ['3', '5', 3], ['3', '6', 5], ['4', '7', 2], ['5', '7', 3], ['5', '6', 1], ['6', '8', 4], ['7', '8', 2], ['5', '8', 6]] }),
         'bellman-ciclo': () => Graph.from({ directed: true, weighted: true, nodes: [['0', 90, 190], ['1', 260, 80], ['2', 430, 190], ['3', 260, 300], ['4', 600, 190], ['5', 740, 190]], edges: [['0', '1', 2], ['1', '2', 3], ['2', '3', 1], ['3', '1', 2], ['0', '3', 4], ['2', '4', 2], ['4', '5', 1]] }),
         'dijkstra': () => Graph.from({ weighted: true, nodes: [['a', 90, 190], ['b', 250, 70], ['c', 250, 310], ['d', 430, 70], ['e', 430, 310], ['f', 600, 190], ['g', 740, 190]], edges: [['a', 'b', 2], ['a', 'c', 4], ['b', 'c', 1], ['b', 'd', 4], ['c', 'e', 3], ['d', 'e', 1], ['d', 'f', 2], ['e', 'f', 2], ['f', 'g', 1], ['b', 'e', 5]] }),
         'dijkstra-dirigido': () => Graph.from({ directed: true, weighted: true, nodes: [['1', 90, 190], ['2', 260, 70], ['3', 260, 310], ['4', 450, 70], ['5', 450, 310], ['6', 650, 190]], edges: [['1', '2', 7], ['1', '3', 9], ['1', '6', 14], ['2', '3', 10], ['2', '4', 15], ['3', '4', 11], ['3', '6', 2], ['4', '5', 6], ['5', '6', 9], ['6', '5', 9], ['5', '3', 3]] }),
+        /* Ejercicio de Floyd enviado por el profesor: dirigido, SIN ponderación (cada arista vale 1). 1→2, 2→3, 3→1, 3→4.
+           Matriz final de clase: [0 1 2 3; 2 0 1 2; 1 2 0 1; ∞ ∞ ∞ 0]; 64 comparaciones, 5 matrices. */
+        'floyd-clase': () => Graph.from({ directed: true, nodes: [['1', 170, 90], ['2', 520, 90], ['3', 520, 300], ['4', 170, 300]], edges: [['1', '2'], ['2', '3'], ['3', '1'], ['3', '4']] }),
+        /* Árbol de expansión de clase: pesos 4, 8, 3, 2, 5, 6, 3 (el 3 repetido se nota 3̄). Kruskal: 2, 3, 3̄, (4 forma ciclo), 5. */
+        'mst-clase': () => Graph.from({ weighted: true, nodes: [['A', 160, 90], ['B', 420, 90], ['C', 160, 300], ['D', 420, 300], ['E', 650, 200]], edges: [['A', 'B', 3], ['A', 'C', 4], ['A', 'D', 8], ['B', 'D', 2], ['B', 'C', 3], ['D', 'E', 5], ['B', 'E', 6]] }),
+        /* Grafo de la clase de matrices: A, B, C, D con aristas 1..5. Dirigido: 1 A→B, 2 C→B, 3 A→D, 4 B→D, 5 D→C.
+           Fila A de incidencia de clase: 1 0 1 0 0; circuitos {1,4,3}, {2,4,5}, {1,2,5,3}. */
+        'matrices-clase': () => Graph.from({ directed: true, nodes: [['A', 130, 190], ['B', 400, 60], ['C', 670, 190], ['D', 400, 320]], edges: [['A', 'B', 1, '1'], ['C', 'B', 1, '2'], ['A', 'D', 1, '3'], ['B', 'D', 1, '4'], ['D', 'C', 1, '5']] }),
+        /* Grafo cúbico plano de la clase de independencia (vértices 1..8, aristas a..l). α = 4 ({1,4,6,7}, {2,3,5,8}); α′ = 4 ({i,j,k,l}). */
+        'cubo-clase': () => Graph.from({ nodes: [['1', 170, 70], ['2', 170, 320], ['3', 470, 70], ['4', 470, 320], ['5', 300, 140], ['6', 300, 250], ['7', 600, 140], ['8', 600, 250]], edges: [['1', '2', 1, 'a'], ['5', '6', 1, 'b'], ['7', '8', 1, 'c'], ['3', '4', 1, 'd'], ['1', '3', 1, 'e'], ['5', '7', 1, 'f'], ['6', '8', 1, 'g'], ['2', '4', 1, 'h'], ['1', '5', 1, 'i'], ['2', '6', 1, 'j'], ['3', '7', 1, 'k'], ['4', '8', 1, 'l']] }),
+        /* Segundo grafo de independencia: 1–2 a, 2–4 b, 2–3 c, 3–4 d, 1–5 e, 5–6 f, 4–6 g. Independiente máximo de clase {1,3,6}. */
+        'indep-clase': () => Graph.from({ nodes: [['1', 140, 110], ['2', 340, 110], ['3', 340, 300], ['4', 540, 200], ['5', 140, 300], ['6', 700, 300]], edges: [['1', '2', 1, 'a'], ['2', '4', 1, 'b'], ['2', '3', 1, 'c'], ['3', '4', 1, 'd'], ['1', '5', 1, 'e'], ['5', '6', 1, 'f'], ['4', '6', 1, 'g']] }),
+        /* Grafo de la clase de dominación: {2,3,6} dominante independiente; {4,5} dominante mínimo y conexo (γ = 2). */
+        'dominante-clase': () => Graph.from({ nodes: [['1', 120, 200], ['2', 260, 80], ['3', 260, 320], ['4', 400, 200], ['5', 560, 200], ['6', 700, 90], ['7', 700, 310]], edges: [['1', '2'], ['1', '3'], ['1', '4'], ['2', '4'], ['3', '4'], ['4', '5'], ['5', '6'], ['5', '7'], ['6', '7']] }),
+        /* Grafo lineal de la clase de pareamientos: 1..8, aristas a..g. Con M = {b, d, f} el camino a b c d e f g es M-aumentado (1 y 8 libres). */
+        'camino-p8': () => Graph.from({ nodes: U.range(8).map(i => [String(i + 1), 70 + i * 94, 200]), edges: 'abcdefg'.split('').map((c, i) => [String(i + 1), String(i + 2), 1, c]) }),
+        /* Grafos del ejercicio de productos de clase: G₁ = A–B ; G₂ = {C, D, E} con C–D. */
+        'g1-prod': () => Graph.from({ nodes: [['A', 250, 190], ['B', 550, 190]], edges: [['A', 'B']] }),
+        'g2-prod': () => Graph.from({ nodes: [['C', 200, 190], ['D', 400, 190], ['E', 600, 190]], edges: [['C', 'D']] }),
         'floyd': () => Graph.from({ directed: true, weighted: true, nodes: [['1', 150, 90], ['2', 500, 90], ['3', 500, 300], ['4', 150, 300]], edges: [['1', '2', 3], ['2', '1', 8], ['1', '4', 7], ['2', '3', 2], ['3', '1', 5], ['3', '4', 1], ['4', '1', 2]] }),
         'bipartito': () => Graph.from({ nodes: [['a', 150, 80], ['b', 330, 80], ['c', 510, 80], ['d', 690, 80], ['1', 150, 300], ['2', 330, 300], ['3', 510, 300], ['4', 690, 300]], edges: [['a', '1'], ['a', '2'], ['b', '1'], ['b', '3'], ['c', '2'], ['c', '4'], ['d', '3'], ['d', '4'], ['b', '2']] }),
         'matching': () => Graph.from({ nodes: [['a', 120, 100], ['b', 300, 60], ['c', 480, 100], ['d', 660, 60], ['e', 120, 300], ['f', 300, 330], ['g', 480, 300], ['h', 660, 330]], edges: [['a', 'b'], ['b', 'c'], ['c', 'd'], ['a', 'e'], ['b', 'f'], ['c', 'g'], ['d', 'h'], ['e', 'f'], ['f', 'g'], ['g', 'h']] }),
@@ -381,9 +408,12 @@ const GraphPresets = {
         'g2-ops': () => Graph.from({ nodes: [['b', 360, 60], ['e', 360, 310], ['h', 620, 300], ['c', 560, 90]], edges: [['b', 'e'], ['e', 'h'], ['b', 'c'], ['c', 'h']] }),
     },
     names: {
-        'clase-basico': 'Grafo básico (7 vértices)', 'articulacion': 'Con articulaciones y puentes', 'fig12': 'Figura 12 (centro/mediana)', 'arbol': 'Árbol (9 vértices)',
+        'clase-basico': 'Grafo básico (7 vértices)', 'articulacion': 'Con articulaciones y puentes', 'fig12': 'Figura 12 de clase (centro/mediana)', 'centro-8': 'Grafo de 8 vértices (no ponderado)', 'arbol': 'Árbol (9 vértices)',
+        'bellman-sin-etiquetar': 'Grafo del tablero SIN etiquetar', 'bellman-rutas': 'Bellman: varias rutas mínimas', 'floyd-clase': 'Floyd de clase (4 vértices, sin pesos)', 'mst-clase': 'Árbol de expansión de clase (3, 3̄)',
+        'matrices-clase': 'Matrices de clase (A, B, C, D; aristas 1..5)', 'cubo-clase': 'Cúbico de clase (1..8, aristas a..l)', 'indep-clase': 'Independencia de clase (1..6)', 'dominante-clase': 'Dominación de clase (1..7)',
+        'camino-p8': 'Lineal de 8 vértices (pareamiento de clase)', 'g1-prod': 'G₁ de clase (A–B)', 'g2-prod': 'G₂ de clase (C–D, E)',
         'euler': 'Euleriano', 'k4': 'Completo K₄', 'k5': 'Completo K₅', 'c5': 'Cíclico C₅ (impar)', 'c6': 'Cíclico C₆ (par)', 'k33': 'Bipartito completo K₃,₃',
-        'petersen': 'Petersen', 'cubo': 'Cubo Q₃', 'mst': 'Ponderado (pesos repetidos)', 'mst-pequeno': 'Ponderado pequeño', 'bellman-clase': 'Bellman: grafo de clase 0..5',
+        'petersen': 'Petersen', 'cubo': 'Cubo Q₃', 'mst': 'Ponderado (pesos repetidos)', 'mst-pequeno': 'Ponderado pequeño', 'bellman-clase': 'Bellman/Dijkstra: grafo del tablero 0..5',
         'bellman-8': 'Bellman: grafo de 8 nodos', 'bellman-ciclo': 'Bellman: grafo CON ciclo dirigido', 'dijkstra': 'Dijkstra no dirigido (empates)', 'dijkstra-dirigido': 'Dijkstra dirigido (con ciclos)',
         'floyd': 'Floyd (dirigido, 4 vértices)', 'bipartito': 'Bipartito', 'matching': 'Pareamientos (escalera)', 'no-simple': 'NO simple (lazo + múltiple)', 'dirigido': 'Dirigido con ciclos',
         'p3': 'Camino P₃', 'k2': 'K₂', 'k3': 'K₃', 'g2-ops': 'G₂ para operaciones',
@@ -423,7 +453,7 @@ class GraphEditor {
         const tb = h('div', { class: 'graph-toolbar' });
         tb.appendChild(h('span', { class: 'graph-title', html: o.title }));
         if (o.editable) {
-            const modes = [['move', '✋ Mover/Sel.'], ['node', '＋ Vértice'], ['edge', '↔ Arista'], ['delete', '✖ Borrar']];
+            const modes = [['move', 'Mover/Sel.'], ['node', '＋ Vértice'], ['edge', '↔ Arista'], ['delete', '✖ Borrar']];
             this.modeGroup = h('div', { class: 'tool-group' }, modes.map(([m, t]) => h('button', { 'data-m': m, class: m === this.mode ? 'active' : '', text: t, onclick: () => this.setMode(m) })));
             tb.appendChild(this.modeGroup);
             if (o.allowDirected && o.forceDirected === undefined) { this.chkDir = UI.check('Dirigido', this.g.directed, v => { this.g.directed = v; this.changed(); }); tb.appendChild(this.chkDir); }

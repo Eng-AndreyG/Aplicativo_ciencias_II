@@ -41,6 +41,8 @@ En todos los temas: **Siguiente Paso** avanza la traza, **Automático** la repro
 
 ## Módulo 3 — Grafos
 
+Los presets marcados «de clase» reproducen los ejemplos de `Transcripciones.txt`.
+
 | # | Tema | Prueba | Resultado esperado |
 |---|------|--------|--------------------|
 | 27 | Inspector | Preset *Con articulaciones* → clic en vértices/aristas | Grado, incidencia, adyacencias, articulaciones {3,4,5}, puentes, separadores |
@@ -49,30 +51,34 @@ En todos los temas: **Siguiente Paso** avanza la traza, **Automático** la repro
 | 30 | Euler | Preset K₄ | “4 vértices de grado impar” → no euleriano |
 | 31 | Hamilton | Preset Petersen, circuito | No existe circuito hamiltoniano (backtracking completo) |
 | 32 | Operaciones | Suma con vértices comunes | Alerta: la suma exige S₁ ∩ S₂ = ∅ |
-| 33 | Productos | P₃ □ K₂, P₃ × K₂, P₃[K₂] | 7, 4 y 11 aristas; coinciden con n₁m₂+n₂m₁, 2m₁m₂, n₁m₂+n₂²m₁ |
-| 34 | Centro | Figura 12 → botones Centro/Radio/Diámetro/Mediana | Resaltado en la tabla de Floyd y subgrafo inducido |
-| 35 | Expansión | Preset ponderado: Kruskal y Prim | Pesos repetidos `2, 2̄, 2̿`; T y T̄ lado a lado, rango y nulidad |
+| 33 | Productos | G₁ = A–B y G₂ = {C–D, E} (presets de clase): □, ⊗, G₁[G₂] | 5, 2 y 11 aristas (n₁m₂+n₂m₁, 2m₁m₂, n₁m₂+n₂²m₁); columnas = G₁, filas = G₂; ⊗: (A,C)–(B,D) y (A,D)–(B,C) |
+| 34 | Centro | **Figura 12 de clase** (con pesos) → botones | Σd = 22, 15, 14, 13, 12; e(v) = 7, 5, 5, 7, 6; **bicentro {2, 3}**, radio 5, diámetro 7, mediana {5} |
+| 35 | Expansión | **Árbol de expansión de clase**, Kruskal | Ramas 2, 3, 3̄, 5 (el 4 forma ciclo); w(T) = 13; T y T̄ lado a lado, rango 4, nulidad 3 |
 | 36 | Expansión | Comparar T₁ y T₂ | d(T₁,T₂) y árbol(es) de expansión central |
-| 37 | Bellman | Preset *grafo de clase 0..5*, 0 → 5 | Niveles ordinales, λ₅ = 7, **3 rutas** reconstruidas en reversa |
-| 38 | Bellman | Preset *CON ciclo dirigido* | Se detiene: ciclo 1→2→3→1 en rojo, **Bellman no aplica** |
-| 39 | Dijkstra | Preset no dirigido, a → g | Etiquetas [d, n] temporales, permanentes (recuadro) y rechazadas (punteadas); 2 rutas de costo 9 |
-| 40 | Dijkstra | Preset dirigido con ciclos | Funciona con ciclos dirigidos |
-| 41 | Floyd | Preset 4 vértices, con y sin optimización | D⁽⁰⁾…D⁽⁴⁾, celdas actualizadas; 22 comparaciones frente a 64 |
+| 37 | Bellman | **Grafo del tablero 0..5**, contador en 0 | Ordinal 0,1,2,3,4,5 (empates: arriba antes que abajo); λ = 0, 2, 4, 3, 4, **λ₅ = 5**; ruta en reversa 5 ← 4 ← 3 ← 1 ← 0 |
+| 38 | Bellman | Preset *Grafo del tablero SIN etiquetar*, contador en 1 | p=1, q=2, r=3, s=4, t=5, u=6 vértice a vértice (paso 1 / paso 2 en el registro) |
+| 39 | Bellman | Preset *CON ciclo dirigido* | Etiqueta 0 y se detiene: ciclo 1→2→3→1 en rojo, **inconsistencia: Bellman no aplica** |
+| 40 | Dijkstra | Grafo del tablero, 0 → 5 | [0, −] temporal → permanente; en 3 se rechaza [5, 0] (punteada) frente a [3, 1]; d = 5, igual que Bellman |
+| 41 | Dijkstra | Preset dirigido con ciclos | Funciona con ciclos dirigidos |
+| 42 | Floyd | **Floyd de clase** (4 vértices, sin pesos), *Sin optimización* | D⁽⁰⁾…D⁽⁴⁾ (5 matrices), 64 comparaciones fila a fila; final [0 1 2 3; 2 0 1 2; 1 2 0 1; ∞ ∞ ∞ 0] |
+| 43 | Floyd | *Omitir fila i = j (propuesta de clase)* | 48 comparaciones, misma matriz final |
 
 ## Módulo 4 — Cortes, matrices, coloreado, independencia, matching
 
 | # | Tema | Prueba | Resultado esperado |
 |---|------|--------|--------------------|
-| 42 | Cortes | K₄ | 16 árboles, 7 circuitos, 7 conjuntos de corte, 3 cortes fundamentales |
-| 43 | Cortes | Pestaña *Conectividad* | κ ≤ λ ≤ δ (Whitney) y separabilidad |
-| 44 | Matrices | Modo *Dirigido* → pestaña *Relaciones* | Todas en ✔: B·Aᵀ = 0, B·Cᵀ = 0, C_c = −B_tᵀ, rangos |
-| 45 | Matrices | Pestaña *Circuitos* en dirigido | ±1 según el sentido horario del dibujo (mueva un vértice y se recalcula) |
-| 46 | Coloreado | Petersen | X = 3, X′ = 4, polinomio k¹⁰ − 15k⁹ + … − 704k |
-| 47 | Coloreado | C₅ / C₆ / K₄ / árbol | Fórmula detectada: cíclico impar/par, completo, árbol |
-| 48 | Independencia | Pestañas y filtros | α(G), α′(G), γ(G); detalle de qué domina cada vértice |
-| 49 | Matching | Preset *NO simple* | Alerta: lazos y aristas múltiples → rechazado |
-| 50 | Matching | Preset escalera, M inicial vacío | Caminos M-aumentados e inversión M ⊕ P hasta |M| = 4 (perfecto) |
-| 51 | Envolventes | Petersen | α + τ = 10 y α′ + ρ = 10 (Gallai) |
+| 44 | Cortes | K₄ | 16 árboles, 7 circuitos, 7 conjuntos de corte, 3 cortes fundamentales |
+| 45 | Cortes | Pestaña *Conectividad* | κ ≤ λ ≤ δ (Whitney) y separabilidad |
+| 46 | Matrices | **Matrices de clase** (dirigido) | Incidencia fila A = 1 0 1 0 0, fila B = −1 −1 0 1 0; adyacencia ±1 (A–B = 1, B–A = −1); aristas: 1–2 = −1, 1–3 = 1, 1–4 = «−1, 1» |
+| 47 | Matrices | Pestaña *Circuitos* | 3 circuitos {1,4,3}, {2,4,5}, {1,2,5,3}; sentido horario: 1 sale, 4 sale, 3 entra |
+| 48 | Matrices | Pestaña *Relaciones* y *Potencias Xᵏ* | Todas en ✔ (B·Aᵀ = 0, B·Cᵀ = 0, C_c = −B_tᵀ, rangos); X² cuenta recorridos de longitud 2 |
+| 49 | Coloreado | Petersen | X = 3, X′ = 4, polinomio k¹⁰ − 15k⁹ + … − 704k, árbol de deleción-contracción |
+| 50 | Coloreado | C₅ → pestaña *Polinomio* | Método del tablero k(k−1)³(k−2) = 24 en k = 3 → **alerta**: el exacto es (k−1)⁵ − (k−1) = 30 |
+| 51 | Coloreado | K₄ / árbol | Método del tablero exacto (k(k−1)(k−2)(k−3); k(k−1)ⁿ⁻¹) |
+| 52 | Independencia | **Cúbico de clase** / **Independencia de clase** / **Dominación de clase** | α = 4 ({1,4,6,7}, {2,3,5,8}), α′ = 4 ({i,j,k,l}); α = 3 ({1,3,6}); γ = 2 ({4,5}), {2,3,6} dominante independiente |
+| 53 | Matching | Preset *NO simple* | Alerta: lazos y aristas múltiples → rechazado |
+| 54 | Matching | **Lineal de 8 vértices**, M₀ = b, d, f | Camino M-aumentado 1…8 (a b c d e f g), inversión → M = {a, c, e, g}: máximo, maximal, perfecto y **óptimo** |
+| 55 | Envolventes | Petersen | α + τ = 10 y α′ + ρ = 10 (Gallai) |
 
 ## Notas para el docente
 
